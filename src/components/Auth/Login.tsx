@@ -44,7 +44,7 @@ export default function Login({ onSwitch }: LoginProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
-              placeholder="alumno@institucion.edu"
+              placeholder="usuario@ifts18.edu.ar"
             />
           </div>
         </div>

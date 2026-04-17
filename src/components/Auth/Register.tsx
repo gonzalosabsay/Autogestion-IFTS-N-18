@@ -25,10 +25,10 @@ export default function Register({ onSwitch }: RegisterProps) {
     setError('');
     
     const allowedDomains = ['@ifts18.edu.ar', '@bue.edu.ar'];
-    const isAllowedDomain = allowedDomains.some(domain => formData.email.endsWith(domain));
+    const isAllowedDomain = allowedDomains.some(domain => formData.email.toLowerCase().endsWith(domain));
 
     if (!isAllowedDomain) {
-      setError('Solo se permiten correos con el dominio @ifts18.edu.ar o @bue.edu.ar');
+      setError('Solo se permiten correos @ifts18.edu.ar o @bue.edu.ar');
       setLoading(false);
       return;
     }
@@ -124,7 +124,7 @@ export default function Register({ onSwitch }: RegisterProps) {
               value={formData.email}
               onChange={handleChange}
               className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
-              placeholder="alumno@institucion.edu"
+              placeholder="alumno@ifts18.edu.ar"
             />
           </div>
         </div>
