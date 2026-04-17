@@ -6,10 +6,27 @@ let genAI: GoogleGenAI | null = null;
 
 function getGenAI() {
   if (!genAI) {
-    // Check both Vite and Node env patterns for maximum compatibility
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    // Check for variables safely in the browser environment
+    let apiKey = '';
+    
+    try {
+      // @ts-ignore - Vite environment
+      apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    } catch (e) {
+      // import.meta.env might not be available in all contexts
+    }
+
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not configured.");
+      try {
+        // @ts-ignore - Node environment fallback
+        apiKey = process.env.GEMINI_API_KEY || '';
+      } catch (e) {
+        // process might not be defined in browser
+      }
+    }
+
+    if (!apiKey) {
+      throw new Error("MISSING_API_KEY");
     }
     genAI = new GoogleGenAI({ apiKey });
   }

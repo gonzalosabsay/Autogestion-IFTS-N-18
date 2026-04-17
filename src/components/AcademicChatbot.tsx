@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, Trash2, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { chatWithAcademicAdvisor } from '../services/academicChatService';
@@ -36,9 +36,15 @@ export default function AcademicChatbot() {
     try {
       const response = await chatWithAcademicAdvisor([...messages, userMessage]);
       setMessages(prev => [...prev, { role: 'model', content: response || 'No pude obtener una respuesta.' }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, { role: 'model', content: 'Lo siento, ocurrió un error al procesar tu consulta. Verifica tu conexión.' }]);
+      let errorMsg = 'Lo siento, ocurrió un error al procesar tu consulta. Verifica tu conexión.';
+      
+      if (error?.message === 'MISSING_API_KEY') {
+        errorMsg = 'No se ha configurado la clave de IA (VITE_GEMINI_API_KEY). Por favor, contacta al administrador del sitio o verifica las variables de entorno en Vercel.';
+      }
+
+      setMessages(prev => [...prev, { role: 'model', content: errorMsg }]);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +94,10 @@ export default function AcademicChatbot() {
                 <button onClick={clearChat} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Limpiar chat">
                   <Trash2 className="w-4 h-4" />
                 </button>
-                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Minimizar">
+                  <Minus className="w-5 h-5" />
+                </button>
+                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Cerrar">
                   <X className="w-5 h-5" />
                 </button>
               </div>
