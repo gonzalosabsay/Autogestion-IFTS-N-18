@@ -1,12 +1,24 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let genAI: GoogleGenAI | null = null;
+
+function getGenAI() {
+  if (!genAI) {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "undefined" || apiKey === "MY_GEMINI_API_KEY") {
+      throw new Error("GEMINI_API_KEY is not configured. Please add VITE_GEMINI_API_KEY to your Vercel Environment Variables.");
+    }
+    genAI = new GoogleGenAI({ apiKey });
+  }
+  return genAI;
+}
 
 export async function extractFieldsFromTemplate(base64Image: string, mimeType: string) {
+  const ai = getGenAI();
   const prompt = "Analiza esta imagen de una plantilla de formulario académico e identifica todos los campos que un alumno necesita completar. Devuelve el nombre del campo y una descripción breve.";
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-1.5-flash",
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType } },
@@ -14,16 +26,15 @@ export async function extractFieldsFromTemplate(base64Image: string, mimeType: s
       ]
     },
     config: {
-      systemInstruction: "Actúa como un administrativo universitario experto.",
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.ARRAY,
         items: {
           type: Type.OBJECT,
           properties: {
-            fieldId: { type: Type.STRING, description: "Un identificador único para el campo (ej: nombre_completo)" },
-            label: { type: Type.STRING, description: "La etiqueta legible del campo (ej: Nombre Completo)" },
-            type: { type: Type.STRING, enum: ["text", "number", "date", "checkbox"], description: "El tipo de dato esperado" },
+            fieldId: { type: Type.STRING },
+            label: { type: Type.STRING },
+            type: { type: Type.STRING, enum: ["text", "number", "date", "checkbox"] },
             required: { type: Type.BOOLEAN }
           },
           required: ["fieldId", "label", "type"]
@@ -36,10 +47,11 @@ export async function extractFieldsFromTemplate(base64Image: string, mimeType: s
 }
 
 export async function autoFillFields(base64Image: string, mimeType: string, studentData: any) {
+  const ai = getGenAI();
   const prompt = `Dada la siguiente información del alumno: ${JSON.stringify(studentData)}, identifica dónde iría cada dato en esta plantilla. Devuelve un mapeo de etiquetas de campos de la plantilla a los valores del alumno.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-1.5-flash",
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType } },
@@ -47,7 +59,6 @@ export async function autoFillFields(base64Image: string, mimeType: string, stud
       ]
     },
     config: {
-      systemInstruction: "Eres un asistente experto en procesamiento de documentos académicos.",
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
