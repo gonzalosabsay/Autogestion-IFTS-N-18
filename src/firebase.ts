@@ -12,16 +12,22 @@ const config: FirebaseOptions = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Database ID logic
-const dbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DB_ID || 
-             import.meta.env.VITE_FIREBASE_DATABASE_ID || 
-             '(default)';
+// Database ID logic with robust fallback
+const rawDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DB_ID || 
+                import.meta.env.VITE_FIREBASE_DATABASE_ID || 
+                '(default)';
 
-// Initialize with safety check
+const dbId = (!rawDbId || rawDbId === '(default)') ? undefined : rawDbId;
+
+// Initialize with safety check to prevent crash if config is partially missing
+if (!config.apiKey || !config.projectId) {
+  console.error('Firebase Configuration is incomplete. Check environment variables.');
+}
+
 const app = initializeApp(config);
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
-}, dbId === '(default)' ? undefined : dbId);
+}, dbId);
 
 export const auth = getAuth(app);
 
