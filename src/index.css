@@ -35,6 +35,16 @@
   .input-minimal {
     @apply w-full px-4 py-2.5 bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none transition-all;
   }
+
+  .markdown-content {
+    @apply text-sm leading-relaxed;
+    
+    p { @apply mb-2 last:mb-0; }
+    ul, ol { @apply mb-2 ml-4 list-disc; }
+    li { @apply mb-1 last:mb-0; }
+    strong { @apply font-bold text-text-main; }
+    code { @apply px-1 bg-bg-base rounded text-[12px] font-mono; }
+  }
 }
 
 

@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
 import AcademicPlan from './AcademicPlan';
+import AcademicChatbot from './AcademicChatbot';
 
 interface DashboardProps {
   profile: UserProfile | null;
@@ -151,7 +152,10 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
       ) : activeTab === 'authorities' && profile?.role === 'admin' ? (
         <AuthorityManager />
       ) : activeTab === 'academic_plan' && profile?.role === 'student' && profile?.career === 'TSAS' ? (
-        <AcademicPlan />
+        <>
+          <AcademicPlan />
+          <AcademicChatbot />
+        </>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Main Panel */}

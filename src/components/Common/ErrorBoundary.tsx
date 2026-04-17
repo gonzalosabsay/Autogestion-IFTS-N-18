@@ -1,8 +1,17 @@
 import * as React from 'react';
 import { AlertCircle, RotateCcw } from 'lucide-react';
 
-export default class ErrorBoundary extends (React.Component as any) {
-  constructor(props: any) {
+interface Props {
+  children: React.ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export default class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       hasError: false,
