@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a student or administrator in the educational system.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "dni": { "type": "string", "description": "National ID number" },
+        "fullName": { "type": "string", "description": "First and last name" },
+        "career": { "type": "string", "description": "Academic career path" },
+        "birthDate": { "type": "string", "format": "date", "description": "Student birth date" },
+        "email": { "type": "string", "format": "email", "description": "Student email" },
+        "role": { "type": "string", "enum": ["student", "admin"], "description": "User role" }
+      },
+      "required": ["uid", "dni", "fullName", "role"]
+    },
+    "Procedure": {
+      "title": "Procedure",
+      "description": "Represents a student request for a certificate or academic process.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string", "description": "UID of the student" },
+        "type": { "type": "string", "enum": ["alumno_regular", "examen", "equivalencias", "reinscripcion"] },
+        "status": { "type": "string", "enum": ["pending", "in_review", "approved", "rejected"] },
+        "caseNumber": { "type": "string", "description": "Generated expediente number" },
+        "data": { "type": "object", "description": "Fields extracted or filled for the PDF template" },
+        "rejectionReason": { "type": "string", "description": "Explanation for rejection given by admin" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "type", "status", "caseNumber", "createdAt"]
+    },
+    "Template": {
+      "title": "Template",
+      "description": "Store field definitions for each procedure type, managed by admins.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ProcedureType key" },
+        "fields": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "fields", "updatedAt"]
+    },
+    "Authority": {
+      "title": "Authority",
+      "description": "Educational authority representing the institution for signing certificates.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "position": { "type": "string" },
+        "signatureUrl": { "type": "string", "description": "Handwritten signature Base64 string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "position", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/procedures/{procedureId}": {
+      "schema": "Procedure",
+      "description": "Academic procedures requests"
+    },
+    "/templates/{templateId}": {
+      "schema": "Template",
+      "description": "System wide templates for procedures"
+    },
+    "/authorities/{authorityId}": {
+      "schema": "Authority",
+      "description": "Registered academic authorities"
+    }
+  }
+}

@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email in ["gonzalo.sabsay@gmail.com", "gonzalosabsay@ifts18.edu.ar"] ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email in ["gonzalosabsay@ifts18.edu.ar"])));
+    }
+
+    function isValidDomain() {
+      return request.auth.token.email.matches(".*@ifts18\\.edu\\.ar$") || 
+             request.auth.token.email.matches(".*@bue\\.edu\\.ar$");
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'dni', 'fullName', 'role']) &&
+             data.uid is string &&
+             data.dni is string && data.dni.size() <= 15 &&
+             data.fullName is string && data.fullName.size() < 100 &&
+             data.role in ['student', 'admin'];
+    }
+
+    function isValidProcedure(data) {
+      return data.keys().hasAll(['studentId', 'type', 'status', 'caseNumber', 'createdAt', 'updatedAt']) &&
+             data.studentId is string &&
+             data.type in ['alumno_regular', 'examen', 'equivalencias', 'reinscripcion'] &&
+             data.status in ['pending', 'in_review', 'approved', 'rejected'] &&
+             (!('submissionMethod' in data) || data.submissionMethod in ['print', 'digital']) &&
+             (!('rejectionReason' in data) || data.rejectionReason is string) &&
+             (!('assignedAdminId' in data) || data.assignedAdminId is string || data.assignedAdminId == null) &&
+             data.caseNumber is string &&
+             data.createdAt is string &&
+             data.updatedAt is string;
+    }
+
+    function isValidAuthority(data) {
+      return data.keys().hasAll(['name', 'position', 'updatedAt']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.position is string && data.position.size() > 0 &&
+             (!('signatureUrl' in data) || data.signatureUrl is string) &&
+             data.updatedAt is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidDomain() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
+    }
+
+    match /procedures/{procedureId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.studentId || isAdmin());
+      allow create: if isAuthenticated() && isValidProcedure(request.resource.data) && (request.auth.uid == request.resource.data.studentId || isAdmin());
+      allow update: if isAuthenticated() && (isAdmin() || (isValidProcedure(request.resource.data) && request.auth.uid == resource.data.studentId));
+      allow delete: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.studentId && resource.data.status == 'pending');
+    }
+
+    match /templates/{templateId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /authorities/{authorityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidAuthority(request.resource.data);
+      allow update: if isAdmin() && isValidAuthority(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

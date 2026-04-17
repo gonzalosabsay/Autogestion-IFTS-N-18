@@ -1,0 +1,6 @@
+{
+  "name": "Autogestion IFTS N°18",
+  "description": "Plataforma de autogestión de trámites académicos para alumnos. Permite solicitar constancias y realizar seguimiento de expedientes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
