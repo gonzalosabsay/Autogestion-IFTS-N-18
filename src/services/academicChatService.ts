@@ -45,6 +45,7 @@ IMPORTANTE: No confundir el "Cuatrimestre del Plan" con el "Cuatrimestre del Cal
 
 REGLAS DE TRÁMITES:
 - Solicitud de Readmisión: Es un trámite 100% digital. NO requiere impresión física ni firma manuscrita. Se firma digitalmente en el sistema.
+- Solicitud de Cambio de Carrera: Es un trámite 100% digital. Solo genera expediente digital, no requiere PDF ni impresión.
 - Constancia de Alumno Regular: Digital y automática.
 
 DATOS DEL PLAN:

@@ -598,7 +598,7 @@ export default function ProcedureDetails({ procedure, profile, onClose }: Detail
                </p>
             </div>
             
-            {procedure.status === 'approved' && procedure.type !== 'pase' && (
+            {procedure.status === 'approved' && procedure.type !== 'pase' && procedure.type !== 'cambio_carrera' && (
               <button
                 onClick={handleDownloadPDF}
                 className="w-full py-3 bg-primary-brand text-white font-bold rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg"

@@ -5,7 +5,8 @@ export type ProcedureType =
   | 'examen' 
   | 'equivalencias' 
   | 'readmision'
-  | 'pase';
+  | 'pase'
+  | 'cambio_carrera';
 
 export type ProcedureStatus = 
   | 'pending' 
@@ -76,5 +77,6 @@ export const PROCEDURE_LABELS: Record<ProcedureType, string> = {
   examen: "Constancia de Examen",
   equivalencias: "Solicitud de Equivalencias",
   readmision: "Solicitud de Readmisión",
-  pase: "Solicitud de Pase"
+  pase: "Solicitud de Pase",
+  cambio_carrera: "Solicitud de Cambio de Carrera"
 };

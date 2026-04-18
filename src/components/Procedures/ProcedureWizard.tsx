@@ -34,13 +34,13 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
   ];
 
   const isPhysicalOnly = type === 'examen' || type === 'equivalencias';
-  const isDigitalOnly = type === 'pase' || type === 'readmision';
+  const isDigitalOnly = type === 'pase' || type === 'readmision' || type === 'cambio_carrera';
 
   const handleTypeSelect = async (t: ProcedureType) => {
     setType(t);
     
     // For digital-only procedures, skip method selection and go straight to Step 4 after setting fields
-    if (t === 'pase' || t === 'readmision') {
+    if (t === 'pase' || t === 'readmision' || t === 'cambio_carrera') {
       setSubmissionMethod('digital');
       
       let fields: TemplateField[] = [];
@@ -90,6 +90,24 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
             nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
             dni: profile.dni,
             email: profile.email,
+          });
+        }
+      } else if (t === 'cambio_carrera') {
+        fields = [
+          { fieldId: 'nombre', label: 'Nombre', type: 'text', required: true },
+          { fieldId: 'apellido', label: 'Apellido', type: 'text', required: true },
+          { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
+          { fieldId: 'email', label: 'mail', type: 'text', required: true },
+          { fieldId: 'carrera_elegida', label: 'Carrera elegida', type: 'text', required: true },
+        ];
+
+        if (profile) {
+          setFormData({
+            nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
+            apellido: profile.fullName.split(' ').slice(-1)[0],
+            fecha_nacimiento: profile.birthDate || '',
+            email: profile.email,
+            carrera_elegida: '',
           });
         }
       }
