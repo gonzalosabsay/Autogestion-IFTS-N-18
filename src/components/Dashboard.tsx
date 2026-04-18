@@ -5,7 +5,6 @@ import { UserProfile, ProcedureRequest, PROCEDURE_LABELS } from '../types';
 import { Plus, FileText, Clock, CheckCircle, XCircle, ChevronRight, Search, Settings } from 'lucide-react';
 import ProcedureWizard from './Procedures/ProcedureWizard';
 import ProcedureDetails from './Procedures/ProcedureDetails';
-import TemplateManager from './Admin/TemplateManager';
 import AuthorityManager from './Admin/AuthorityManager';
 import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 import { cn } from '../lib/utils';
@@ -17,8 +16,8 @@ import AcademicChatbot from './AcademicChatbot';
 
 interface DashboardProps {
   profile: UserProfile | null;
-  activeNav?: 'procedures' | 'templates' | 'authorities' | 'wizard' | 'academic_plan';
-  onNavChange?: (nav: 'procedures' | 'templates' | 'authorities' | 'wizard' | 'academic_plan') => void;
+  activeNav?: 'procedures' | 'authorities' | 'wizard' | 'academic_plan';
+  onNavChange?: (nav: 'procedures' | 'authorities' | 'wizard' | 'academic_plan') => void;
 }
 
 export default function Dashboard({ profile, activeNav, onNavChange }: DashboardProps) {
@@ -36,7 +35,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
     }
   }, [activeNav, onNavChange]);
 
-  const activeTab = (activeNav === 'templates' || activeNav === 'authorities' || activeNav === 'procedures' || activeNav === 'academic_plan') 
+  const activeTab = (activeNav === 'authorities' || activeNav === 'procedures' || activeNav === 'academic_plan') 
     ? activeNav 
     : 'procedures';
 
@@ -109,7 +108,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
             {activeTab === 'academic_plan'
               ? 'Consulta las materias, requisitos y docentes de tu carrera.'
               : (profile?.role === 'admin' 
-                ? 'Gestiona expedientes y configura plantillas del sistema.' 
+                ? 'Gestiona expedientes y firmas autorizadas del sistema.' 
                 : 'Completa los campos para iniciar tu expediente administrativo.')}
           </p>
         </div>
@@ -126,15 +125,6 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
               Expedientes
             </button>
             <button 
-              onClick={() => onNavChange?.('templates')}
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all focus:outline-none",
-                activeTab === 'templates' ? "bg-bg-base text-text-main shadow-sm" : "text-text-muted hover:text-text-main"
-              )}
-            >
-              Plantillas
-            </button>
-            <button 
               onClick={() => onNavChange?.('authorities')}
               className={cn(
                 "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all focus:outline-none",
@@ -147,9 +137,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
         )}
       </header>
 
-      {activeTab === 'templates' && profile?.role === 'admin' ? (
-        <TemplateManager />
-      ) : activeTab === 'authorities' && profile?.role === 'admin' ? (
+      {activeTab === 'authorities' && profile?.role === 'admin' ? (
         <AuthorityManager />
       ) : activeTab === 'academic_plan' && profile?.role === 'student' && profile?.career === 'TSAS' ? (
         <>
@@ -253,7 +241,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
                <h2 className="section-title text-[#1E40AF] dark:text-blue-400">Información Útil</h2>
                <p className="text-[12px] leading-[1.6] text-[#1E40AF] dark:text-blue-300">
                   {profile?.role === 'admin' 
-                    ? 'Como administrador puedes supervisar todos los expedientes y gestionar las plantillas de trámites. Las plantillas definen qué campos debe completar el alumno.'
+                    ? 'Como administrador puedes supervisar todos los expedientes y gestionar las firmas autorizadas del sistema.'
                     : 'Los trámites de constancias regulares se procesan en un máximo de 48hs hábiles. Podrás descargar el PDF firmado digitalmente desde la sección "Mis Expedientes".'}
                </p>
             </div>

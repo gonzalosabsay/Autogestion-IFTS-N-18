@@ -34,36 +34,67 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
   ];
 
   const isPhysicalOnly = type === 'examen' || type === 'equivalencias';
-  const isDigitalOnly = type === 'pase';
+  const isDigitalOnly = type === 'pase' || type === 'readmision';
 
   const handleTypeSelect = async (t: ProcedureType) => {
     setType(t);
     
-    // For 'pase', skip method selection and go straight to Step 4 after setting fields
-    if (t === 'pase') {
+    // For digital-only procedures, skip method selection and go straight to Step 4 after setting fields
+    if (t === 'pase' || t === 'readmision') {
       setSubmissionMethod('digital');
-      const paseFields: TemplateField[] = [
-        { fieldId: 'nombre', label: 'Nombre', type: 'text', required: true },
-        { fieldId: 'apellido', label: 'Apellido', type: 'text', required: true },
-        { fieldId: 'email', label: 'Mail', type: 'text', required: true },
-        { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
-        { fieldId: 'dni', label: 'DNI', type: 'text', required: true },
-        { fieldId: 'institucion_origen', label: 'Institución de Origen', type: 'text', required: true },
-        { fieldId: 'institucion_destino', label: 'Institución Destino', type: 'text', required: true },
-      ];
-      setTemplateFields(paseFields);
       
-      if (profile) {
-        setFormData({
-          nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
-          apellido: profile.fullName.split(' ').slice(-1)[0],
-          email: profile.email,
-          fecha_nacimiento: profile.birthDate || '',
-          dni: profile.dni,
-          institucion_origen: 'IFTS 18', // Defaulting to current if it's a transfer OUT, or let them type
-          institucion_destino: '',
-        });
+      let fields: TemplateField[] = [];
+      
+      if (t === 'pase') {
+        fields = [
+          { fieldId: 'nombre', label: 'Nombre', type: 'text', required: true },
+          { fieldId: 'apellido', label: 'Apellido', type: 'text', required: true },
+          { fieldId: 'email', label: 'Mail', type: 'text', required: true },
+          { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
+          { fieldId: 'dni', label: 'DNI', type: 'text', required: true },
+          { fieldId: 'institucion_origen', label: 'Institución de Origen', type: 'text', required: true },
+          { fieldId: 'institucion_destino', label: 'Institución Destino', type: 'text', required: true },
+        ];
+        
+        if (profile) {
+          setFormData({
+            nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
+            apellido: profile.fullName.split(' ').slice(-1)[0],
+            email: profile.email,
+            fecha_nacimiento: profile.birthDate || '',
+            dni: profile.dni,
+            institucion_origen: 'IFTS 18',
+            institucion_destino: '',
+          });
+        }
+      } else if (t === 'readmision') {
+        fields = [
+          { fieldId: 'carrera_solicitada', label: 'Carrera para Readmisión', type: 'text', required: true },
+          { fieldId: 'apellido', label: 'Apellidos', type: 'text', required: true },
+          { fieldId: 'nombre', label: 'Nombres', type: 'text', required: true },
+          { fieldId: 'dni', label: 'D.N.I.', type: 'text', required: true },
+          { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
+          { fieldId: 'domicilio', label: 'Domicilio', type: 'text', required: true },
+          { fieldId: 'localidad', label: 'Localidad y Código Postal', type: 'text', required: true },
+          { fieldId: 'telefono', label: 'Teléfono', type: 'text', required: true },
+          { fieldId: 'email', label: 'e-mail', type: 'text', required: true },
+          { fieldId: 'anio_ingreso', label: 'Año de ingreso', type: 'text', required: true },
+          { fieldId: 'rematriculaciones', label: 'Rematriculaciones Anteriores', type: 'text', required: false },
+          { fieldId: 'motivo_readmision', label: 'Motivo de Readmisión', type: 'select', required: true },
+        ];
+        
+        if (profile) {
+          setFormData({
+            carrera_solicitada: profile.career,
+            apellido: profile.fullName.split(' ').slice(-1)[0],
+            nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
+            dni: profile.dni,
+            email: profile.email,
+          });
+        }
       }
+
+      setTemplateFields(fields);
       setStep(4);
       return;
     }
@@ -76,39 +107,6 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
     setLoading(true);
     const t = type!;
     try {
-      // Hardcoded template fields for Readmisión to match specific user request
-      if (t === 'readmision') {
-        const readmisionFields: TemplateField[] = [
-          { fieldId: 'carrera_solicitada', label: 'Carrera para Readmisión', type: 'text', required: true },
-          { fieldId: 'apellido', label: 'Apellidos', type: 'text', required: true },
-          { fieldId: 'nombre', label: 'Nombres', type: 'text', required: true },
-          { fieldId: 'dni', label: 'D.N.I.', type: 'text', required: true },
-          { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
-          { fieldId: 'domicilio', label: 'Domicilio', type: 'text', required: true },
-          { fieldId: 'localidad', label: 'Localidad y Código Postal', type: 'text', required: true },
-          { fieldId: 'telefono', label: 'Teléfono', type: 'text', required: true },
-          { fieldId: 'email', label: 'e-mail', type: 'text', required: true },
-          { fieldId: 'carrera', label: 'Carrera Actual', type: 'text', required: true },
-          { fieldId: 'anio_ingreso', label: 'Año de ingreso', type: 'text', required: true },
-          { fieldId: 'rematriculaciones', label: 'Rematriculaciones Anteriores', type: 'text', required: false },
-          { fieldId: 'motivo_readmision', label: 'Motivo de Readmisión', type: 'select', required: true },
-        ];
-        setTemplateFields(readmisionFields);
-        
-        if (profile) {
-          setFormData({
-            carrera_solicitada: profile.career,
-            apellido: profile.fullName.split(' ').slice(-1)[0],
-            nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
-            dni: profile.dni,
-            email: profile.email,
-            carrera: profile.career,
-          });
-        }
-        setStep(4);
-        return;
-      }
-
       // Check if template exists in Firestore
       const path = `templates/${t}`;
       const docRef = doc(db, 'templates', t);

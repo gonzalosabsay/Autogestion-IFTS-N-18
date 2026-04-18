@@ -60,51 +60,56 @@ export default function AcademicChatbot() {
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-6 right-6 w-14 h-14 bg-primary-brand text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform z-[60]",
+          "fixed bottom-6 right-6 w-14 h-14 bg-accent-blue text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform z-[60] border-2 border-white/10",
           isOpen && "hidden"
         )}
       >
         <MessageSquare className="w-6 h-6" />
-        <span className="absolute -top-1 -right-1 bg-accent-blue text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">AI</span>
+        <span className="absolute -top-1 -right-1 bg-primary-brand text-bg-base dark:text-text-main text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-md animate-pulse">AI</span>
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:max-w-[400px] h-[100dvh] sm:h-[600px] bg-sidebar-bg sm:rounded-2xl shadow-2xl border-t sm:border border-border-subtle flex flex-col z-[70] overflow-hidden transition-colors"
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className="fixed inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 w-full sm:max-w-[400px] h-[85dvh] sm:h-[600px] bg-sidebar-bg rounded-t-[32px] sm:rounded-2xl shadow-2xl border-t sm:border border-border-subtle flex flex-col z-[200] overflow-hidden transition-all duration-300 shadow-accent-blue/5"
           >
             {/* Header */}
-            <div className="bg-primary-brand p-4 text-white flex items-center justify-between">
+            <div className="bg-sidebar-bg border-b border-border-subtle p-4 flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-accent-blue/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Bot className="w-6 h-6 text-accent-blue" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold leading-none">Asistente TSAS</h3>
-                  <p className="text-[10px] text-white/60 mt-1 flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5" />
-                    Powered by Gemini
-                  </p>
+                  <h3 className="text-[14px] font-bold text-text-main leading-tight">Asistente TSAS</h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <p className="text-[10px] text-text-muted font-medium">Gemini AI • En línea</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={clearChat} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Limpiar chat">
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={clearChat} 
+                  className="p-2 text-text-muted hover:text-accent-blue hover:bg-bg-base rounded-full transition-all" 
+                  title="Reiniciar chat"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
-                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Minimizar">
-                  <Minus className="w-5 h-5" />
-                </button>
-                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Cerrar">
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="p-2 text-text-muted hover:text-red-500 hover:bg-bg-base rounded-full transition-all" 
+                  title="Cerrar"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Chat Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-bg-base/30">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-bg-base/50 dark:bg-bg-base/20 custom-scrollbar">
               {messages.map((m, i) => (
                 <motion.div
                   initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}

@@ -323,27 +323,29 @@ export default function ProcedureDetails({ procedure, profile, onClose }: Detail
                       : "bg-accent-blue/5 border-accent-blue/10 hover:border-accent-blue/30"
                   )}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold",
-                        msg.senderRole === 'admin' ? "bg-sidebar-bg text-accent-blue" : "bg-accent-blue text-white"
-                      )}>
-                        {msg.senderRole === 'admin' ? 'AD' : 'YO'}
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold",
+                            msg.senderRole === 'admin' ? "bg-sidebar-bg text-accent-blue" : "bg-accent-blue text-white"
+                          )}>
+                            {msg.senderRole === 'admin' ? 'AD' : 'ES'}
+                          </div>
+                          <div>
+                            <p className="text-[12px] font-bold text-text-main group-hover:text-accent-blue transition-colors">
+                              {msg.senderRole === profile?.role 
+                                ? 'Tu Respuesta' 
+                                : (msg.senderRole === 'admin' ? 'Administración' : `Respuesta de ${student?.fullName || 'Estudiante'}`)}
+                            </p>
+                            <p className="text-[10px] text-text-muted">
+                              {format(new Date(msg.timestamp), "d MMM, HH:mm", { locale: es })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-text-muted text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                          {expandedMessageId === msg.id ? 'Cerrar' : 'Ver detalle'}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[12px] font-bold text-text-main group-hover:text-accent-blue transition-colors">
-                          {msg.senderRole === 'admin' ? 'Administración' : 'Tu Respuesta'}
-                        </p>
-                        <p className="text-[10px] text-text-muted">
-                          {format(new Date(msg.timestamp), "d MMM, HH:mm", { locale: es })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-text-muted text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                      {expandedMessageId === msg.id ? 'Cerrar' : 'Ver detalle'}
-                    </div>
-                  </div>
                   
                   <AnimatePresence>
                     {expandedMessageId === msg.id && (

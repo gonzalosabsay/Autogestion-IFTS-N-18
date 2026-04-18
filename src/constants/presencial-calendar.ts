@@ -51,14 +51,6 @@ export const getCuatrimestreFromCode = (code: string): number => {
   if (code.startsWith('1.1.')) return 1;
   if (code.startsWith('1.2.')) return 2;
   if (code.startsWith('2.1.')) return 3;
-  if (code.startsWith('2.2.')) return 2; // Error in my logic or user? 
-  // Wait, TSAS 4C is 2nd year 2nd cuatrimestre. 
-  // Let's re-map:
-  // 1.1 -> 1
-  // 1.2 -> 2
-  // 2.1 -> 3
-  // 2.2 -> 4
-  // 3.1 -> 5
   if (code.startsWith('2.2.')) return 4;
   if (code.startsWith('3.1.')) return 5;
   return 0;

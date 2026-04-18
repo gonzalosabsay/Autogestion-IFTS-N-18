@@ -1,12 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TSAS_PLAN, Subject } from '../constants/academic-plan';
-import { Book, Info, ArrowLeft, Layers, Clock, Calendar, Video, Globe, ExternalLink, MapPin } from 'lucide-react';
+import { Book, Info, ArrowLeft, Layers, Clock, Calendar, Video, Globe, ExternalLink, MapPin, ChevronRight, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { PRESENCIAL_CALENDAR, getCuatrimestreFromCode } from '../constants/presencial-calendar';
 
 export default function AcademicPlan() {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  // Helper to get all recursive ancestors (prerequisites)
+  const getAllAncestors = (code: string, visited = new Set<string>()): string[] => {
+    const subject = TSAS_PLAN.find(s => s.code === code);
+    if (!subject || visited.has(code)) return [];
+    visited.add(code);
+    
+    let ancestors = [...subject.correlatives];
+    subject.correlatives.forEach(corrCode => {
+      ancestors = [...ancestors, ...getAllAncestors(corrCode, visited)];
+    });
+    return Array.from(new Set(ancestors));
+  };
+
+  // Helper to get all recursive descendants (dependent subjects)
+  const getAllDescendants = (code: string, visited = new Set<string>()): string[] => {
+    if (visited.has(code)) return [];
+    visited.add(code);
+    
+    const dependents = TSAS_PLAN.filter(s => s.correlatives.includes(code)).map(s => s.code);
+    let allDeps = [...dependents];
+    dependents.forEach(depCode => {
+      allDeps = [...allDeps, ...getAllDescendants(depCode, visited)];
+    });
+    return Array.from(new Set(allDeps));
+  };
+
+  const ancestors = selectedSubject ? getAllAncestors(selectedSubject.code) : [];
+  const descendants = selectedSubject ? getAllDescendants(selectedSubject.code) : [];
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Auto-minimize on mobile selection to show the map briefly or just allow easier interaction
+  useEffect(() => {
+    if (selectedSubject) {
+      setIsMinimized(false);
+    }
+  }, [selectedSubject]);
 
   const subjectsByYear = TSAS_PLAN.reduce((acc, subject) => {
     if (!acc[subject.year]) acc[subject.year] = [];
@@ -50,29 +95,33 @@ export default function AcademicPlan() {
               {year} Año
             </h3>
             <div className="space-y-3">
-              {subjects.map((subject) => {
+              {subjects.map((subject, idx) => {
                 const isSelected = selectedSubject?.code === subject.code;
-                const isRequirement = selectedSubject?.correlatives.includes(subject.code);
-                const isDependent = subject.correlatives.includes(selectedSubject?.code || '');
+                const isAncestor = ancestors.includes(subject.code);
+                const isDescendant = descendants.includes(subject.code);
 
                 return (
-                  <button
+                  <motion.button
+                    layout
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
                     key={subject.code}
                     onClick={() => setSelectedSubject(subject)}
                     className={cn(
                       "w-full p-4 bg-sidebar-bg border border-border-subtle rounded-xl text-left transition-all hover:border-accent-blue hover:shadow-md group relative overflow-hidden",
                       isSelected && "ring-2 ring-accent-blue border-accent-blue bg-accent-blue/5",
-                      isRequirement && "ring-2 ring-amber-500/50 border-amber-500 bg-amber-50 dark:bg-amber-500/10",
-                      isDependent && "ring-2 ring-emerald-500/50 border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10",
-                      !isSelected && !isRequirement && !isDependent && "hover:border-accent-blue"
+                      isAncestor && "ring-2 ring-amber-500/50 border-amber-500 bg-amber-50 dark:bg-amber-500/10",
+                      isDescendant && "ring-2 ring-emerald-500/50 border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10",
+                      !isSelected && !isAncestor && !isDescendant && "hover:border-accent-blue"
                     )}
                   >
                     <div className="flex justify-between items-start mb-1">
                       <span className={cn(
                         "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded transition-colors",
                         isSelected ? "text-accent-blue bg-accent-blue/10" : 
-                        isRequirement ? "text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/10" :
-                        isDependent ? "text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10" :
+                        isAncestor ? "text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/10" :
+                        isDescendant ? "text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10" :
                         "text-accent-blue bg-accent-blue/5"
                       )}>
                         {subject.code}
@@ -82,13 +131,25 @@ export default function AcademicPlan() {
                     <h4 className={cn(
                       "text-[14px] font-bold transition-colors leading-tight",
                       isSelected ? "text-accent-blue" :
-                      isRequirement ? "text-amber-900 dark:text-amber-200" :
-                      isDependent ? "text-emerald-900 dark:text-emerald-200" :
+                      isAncestor ? "text-amber-900 dark:text-amber-200" :
+                      isDescendant ? "text-emerald-900 dark:text-emerald-200" :
                       "text-text-main group-hover:text-accent-blue"
                     )}>
                       {subject.name}
                     </h4>
-                  </button>
+                    
+                    {/* Visual connection indicator */}
+                    {(isAncestor || isDescendant) && (
+                      <motion.div 
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        className={cn(
+                          "absolute bottom-0 left-0 h-0.5 w-full origin-left",
+                          isAncestor ? "bg-amber-500" : "bg-emerald-500"
+                        )} 
+                      />
+                    )}
+                  </motion.button>
                 );
               })}
             </div>
@@ -98,162 +159,251 @@ export default function AcademicPlan() {
 
       <AnimatePresence>
         {selectedSubject && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed inset-0 lg:inset-auto lg:bottom-8 lg:left-1/2 lg:-translate-x-1/2 w-full lg:max-w-4xl z-50 px-0 lg:px-4 flex items-end lg:items-center justify-center pointer-events-none"
-          >
-            <div className="bg-[#111827] dark:bg-sidebar-bg text-white w-full h-[90vh] lg:h-auto rounded-t-3xl lg:rounded-2xl shadow-2xl p-6 lg:p-8 border-t lg:border border-white/10 overflow-y-auto pointer-events-auto relative custom-scrollbar transition-colors">
-              <div className="sticky top-0 right-0 flex justify-end z-10 mb-[-32px]">
+          <div className={cn(
+            "fixed inset-0 z-[100] flex pointer-events-none",
+            isMobile ? "items-end" : "justify-end"
+          )}>
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedSubject(null)}
+              className="absolute inset-0 bg-text-main/20 backdrop-blur-[2px] pointer-events-auto"
+            />
+            
+            <motion.div
+              initial={isMobile ? { y: '100%' } : { x: '100%' }}
+              animate={
+                isMobile 
+                  ? { y: isMinimized ? 'calc(100% - 80px)' : 0 } 
+                  : { x: isMinimized ? 'calc(100% - 60px)' : 0 }
+              }
+              exit={isMobile ? { y: '100%' } : { x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={cn(
+                "bg-sidebar-bg text-text-main shadow-2xl flex flex-col relative pointer-events-auto overflow-hidden transition-all duration-300",
+                isMobile 
+                  ? "w-full h-[85dvh] rounded-t-[32px] border-t border-border-subtle" 
+                  : cn("h-full border-l border-border-subtle", isMinimized ? "w-20" : "w-[480px]")
+              )}
+            >
+              {isMinimized && !isMobile && (
                 <button 
-                  onClick={() => setSelectedSubject(null)}
-                  className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors backdrop-blur-md"
+                  onClick={() => setIsMinimized(false)}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 hover:bg-accent-blue/5 transition-colors group"
                 >
-                  <ArrowLeft className="w-5 h-5 rotate-90 lg:rotate-0" />
+                  <ArrowLeft className="w-5 h-5 text-accent-blue rotate-180" />
+                  <span className="[writing-mode:vertical-lr] text-[10px] font-bold uppercase tracking-widest text-text-muted group-hover:text-accent-blue">Ver Detalles</span>
                 </button>
-              </div>
+              )}
 
-              <div className="flex flex-col sm:flex-row gap-6 items-start mb-8">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
-                  <Info className="w-8 h-8 text-accent-blue" />
-                </div>
-                <div>
-                  <h3 className="text-2xl lg:text-3xl font-bold leading-tight pr-10">{selectedSubject.name}</h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-                    <p className="text-accent-blue font-bold text-base">{selectedSubject.teacher}</p>
-                    <span className="text-white/20 hidden sm:inline">|</span>
-                    <p className="text-white/60 text-sm">Código: {selectedSubject.code}</p>
-                    <span className="text-white/20 hidden sm:inline">|</span>
-                    <p className="text-white/60 text-sm">{selectedSubject.hours} Horas Semanales</p>
+              {/* Header */}
+              <div className={cn(
+                "p-6 sm:p-8 border-b border-border-subtle flex items-start justify-between bg-bg-base/50 backdrop-blur-md sticky top-0 z-20 transition-opacity",
+                isMinimized && "opacity-0 pointer-events-none"
+              )}>
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 bg-accent-blue/10 rounded-xl flex items-center justify-center shrink-0">
+                    <Info className="w-6 h-6 text-accent-blue" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[20px] sm:text-[24px] font-bold tracking-tight leading-tight mb-1 truncate pr-8">{selectedSubject.name}</h3>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <p className="text-accent-blue font-bold text-sm">{selectedSubject.teacher}</p>
+                      <span className="text-text-muted/30">•</span>
+                      <p className="text-text-muted text-xs font-mono">{selectedSubject.code}</p>
+                    </div>
+                    <button 
+                      onClick={() => setIsMinimized(true)}
+                      className="mt-2 text-[11px] font-bold text-accent-blue/70 hover:text-accent-blue underline underline-offset-4 flex items-center gap-1 transition-colors"
+                    >
+                      <Layers className="w-3 h-3" />
+                      Ver mapa de correlatividades
+                    </button>
                   </div>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/10">
-                <div className="space-y-4">
-                  <h4 className="text-[12px] uppercase font-bold tracking-widest text-white/40 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Días y Horarios de Cursada
-                  </h4>
-                  <div className="grid gap-2">
-                    {Object.entries(selectedSubject.schedule).map(([day, time]) => (
-                      <div key={day} className="flex justify-between items-center bg-white/5 p-3 px-4 rounded-xl border border-white/5">
-                        <span className="text-sm font-bold text-accent-blue">{day}</span>
-                        <span className="text-sm font-mono text-white/80">{time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-[12px] uppercase font-bold tracking-widest text-white/40 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Requisitos de Correlatividad
-                  </h4>
-                  {selectedSubject.correlatives.length > 0 ? (
-                    <div className="grid gap-2">
-                      {selectedSubject.correlatives.map(code => (
-                        <div key={code} className="flex items-center gap-3 bg-white/5 p-3 px-4 rounded-xl border border-white/5">
-                          <span className="text-xs font-mono font-bold text-accent-blue/80 bg-accent-blue/10 px-2 py-1 rounded shrink-0">
-                            {code}
-                          </span>
-                          <span className="text-xs font-medium truncate">{getSubjectName(code)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
-                      <p className="text-sm text-white/40 italic">Sin correlatividades previas.</p>
-                    </div>
+                <div className="flex flex-col items-end gap-2">
+                  <button 
+                    onClick={() => setSelectedSubject(null)}
+                    className={cn(
+                      "p-2 hover:bg-bg-base transition-colors shrink-0 group flex flex-col items-center",
+                      isMobile ? "w-12 -mt-2" : "rounded-full"
+                    )}
+                    aria-label="Cerrar detalles"
+                  >
+                    {isMobile ? (
+                      <div className="w-10 h-1 bg-text-muted/20 rounded-full group-hover:bg-text-muted/40 transition-colors" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-text-muted hover:text-red-500 transition-colors" />
+                    )}
+                  </button>
+                  {!isMobile && (
+                    <button 
+                      onClick={() => setIsMinimized(true)}
+                      className="p-2 text-text-muted hover:text-accent-blue transition-colors"
+                      title="Minimizar panel"
+                    >
+                      <ArrowLeft className="w-5 h-5 rotate-180" />
+                    </button>
                   )}
                 </div>
               </div>
 
-              {(selectedSubject.moodleUrl || selectedSubject.meetUrl) && (
-                <div className="pt-8 mt-8 border-t border-white/10">
-                  <h4 className="text-[12px] uppercase font-bold tracking-widest text-white/40 mb-4 flex items-center gap-2">
-                    <Globe className="w-4 h-4" />
-                    Aulas Virtuales y Encuentros
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {selectedSubject.moodleUrl && (
-                      <a 
-                        href={ensureUrl(selectedSubject.moodleUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between gap-4 bg-accent-blue/10 hover:bg-accent-blue/20 p-4 rounded-2xl border border-accent-blue/20 transition-all group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-accent-blue/20 rounded-xl flex items-center justify-center shrink-0">
-                            <Globe className="w-5 h-5 text-accent-blue" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-white leading-none">Aula Virtual</p>
-                            <p className="text-[11px] text-accent-blue font-medium mt-1">Moodle (Plataforma)</p>
-                          </div>
-                        </div>
-                        <ExternalLink className="w-5 h-5 text-white/40 group-hover:text-white transition-colors" />
-                      </a>
-                    )}
-                    {selectedSubject.meetUrl && (
-                      <a 
-                        href={ensureUrl(selectedSubject.meetUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between gap-4 bg-emerald-500/10 hover:bg-emerald-500/20 p-4 rounded-2xl border border-emerald-500/20 transition-all group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center shrink-0">
-                            <Video className="w-5 h-5 text-emerald-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-white leading-none">Clase en Vivo</p>
-                            <p className="text-[11px] text-emerald-500 font-medium mt-1">Google Meet / Classroom</p>
-                          </div>
-                        </div>
-                        <ExternalLink className="w-5 h-5 text-white/40 group-hover:text-white transition-colors" />
-                      </a>
-                    )}
+              {/* Content */}
+              <div className={cn(
+                "flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 custom-scrollbar transition-opacity",
+                isMinimized && "opacity-0 pointer-events-none"
+              )}>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-bg-base border border-border-subtle">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-1">Carga Horaria</p>
+                    <p className="text-[16px] font-bold text-text-main">{selectedSubject.hours}h Semanales</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-bg-base border border-border-subtle">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-1">Periodo</p>
+                    <p className="text-[16px] font-bold text-text-main">{selectedSubject.period}</p>
                   </div>
                 </div>
-              )}
 
-              {attendanceWeeks && attendanceWeeks.length > 0 && (
-                <div className="pt-8 mt-8 border-t border-white/10">
-                  <h4 className="text-[12px] uppercase font-bold tracking-widest text-white/40 mb-4 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Cronograma de Presencialidad (IFTS 18)
+                {/* Schedule */}
+                <div className="space-y-4">
+                  <h4 className="text-[11px] uppercase font-bold tracking-widest text-text-muted flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Días y Horarios
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {attendanceWeeks.map((item) => (
-                      <div key={item.week} className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col gap-2 transition-all hover:bg-white/10">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[11px] font-bold text-accent-blue uppercase tracking-tighter">Semana {item.week}</span>
-                          <span className="text-[10px] font-medium text-white/40">1° Cuat. 2026</span>
-                        </div>
-                        <p className="text-[13px] font-bold text-white">{item.dates}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className={cn(
-                            "w-2 h-2 rounded-full",
-                            item.location.includes('PB') ? 'bg-emerald-500' : 
-                            item.location.includes('Piso') ? 'bg-amber-500' : 'bg-accent-blue'
-                          )} />
-                          <span className="text-[12px] text-white/60 font-medium truncate">{item.location}</span>
-                        </div>
+                  <div className="space-y-2">
+                    {Object.entries(selectedSubject.schedule).map(([day, time]) => (
+                      <div key={day} className="flex justify-between items-center bg-bg-base p-4 rounded-xl border border-border-subtle">
+                        <span className="text-sm font-bold text-accent-blue">{day}</span>
+                        <span className="text-sm font-mono text-text-main">{time}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10 flex items-start gap-3">
-                    <Info className="w-5 h-5 text-accent-blue shrink-0 mt-0.5" />
-                    <p className="text-[12px] text-white/50 italic leading-relaxed">
-                      El resto de las semanas la cursada se realiza de manera remota a través del Aula Virtual y Google Meet. Las fechas son orientativas y pueden sufrir modificaciones.
-                    </p>
-                  </div>
                 </div>
-              )}
-            </div>
-          </motion.div>
+
+                {/* Correlatives */}
+                <div className="space-y-4">
+                  <h4 className="text-[11px] uppercase font-bold tracking-widest text-text-muted flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Requisitos Previos (Ancestros)
+                  </h4>
+                  {selectedSubject.correlatives.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedSubject.correlatives.map(code => (
+                        <button 
+                          key={code} 
+                          onClick={() => {
+                            const found = TSAS_PLAN.find(s => s.code === code);
+                            if (found) {
+                              setSelectedSubject(found);
+                              setIsMinimized(true);
+                            }
+                          }}
+                          className="w-full flex items-center gap-3 bg-bg-base p-4 rounded-xl border border-border-subtle hover:border-amber-500 hover:bg-amber-500/5 transition-all group"
+                        >
+                          <span className="text-xs font-mono font-bold text-amber-600 bg-amber-500/10 px-2 py-1 rounded shrink-0 group-hover:bg-amber-500/20">
+                            {code}
+                          </span>
+                          <span className="text-[13px] font-medium text-text-main truncate group-hover:text-amber-700">{getSubjectName(code)}</span>
+                          <ChevronRight className="w-4 h-4 ml-auto text-text-muted opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl border border-border-subtle border-dashed text-center">
+                      <p className="text-xs text-text-muted italic">Sin correlatividades previas</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Virtual Links */}
+                {(selectedSubject.moodleUrl || selectedSubject.meetUrl) && (
+                  <div className="space-y-4 pt-4 border-t border-border-subtle">
+                    <h4 className="text-[11px] uppercase font-bold tracking-widest text-text-muted flex items-center gap-2">
+                      <Globe className="w-4 h-4" />
+                      Enlaces Virtuales
+                    </h4>
+                    <div className="grid gap-3">
+                      {selectedSubject.moodleUrl && (
+                        <a 
+                          href={ensureUrl(selectedSubject.moodleUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between gap-4 bg-accent-blue/5 hover:bg-accent-blue/10 p-4 rounded-2xl border border-accent-blue/10 transition-all group"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-accent-blue/10 rounded-xl flex items-center justify-center shrink-0">
+                              <Globe className="w-5 h-5 text-accent-blue" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-text-main leading-none">Aula Virtual</p>
+                              <p className="text-[11px] text-accent-blue font-medium mt-1">Moodle IFTS 18</p>
+                            </div>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-text-muted group-hover:text-accent-blue transition-colors" />
+                        </a>
+                      )}
+                      {selectedSubject.meetUrl && (
+                        <a 
+                          href={ensureUrl(selectedSubject.meetUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between gap-4 bg-emerald-500/5 hover:bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/10 transition-all group"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
+                              <Video className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-text-main leading-none">Clase en Vivo</p>
+                              <p className="text-[11px] text-emerald-500 font-medium mt-1">Google Meet</p>
+                            </div>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-text-muted group-hover:text-emerald-500 transition-colors" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Attendance Schedule */}
+                {attendanceWeeks && attendanceWeeks.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-border-subtle">
+                    <h4 className="text-[11px] uppercase font-bold tracking-widest text-text-muted flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Fechas de Presencialidad
+                    </h4>
+                    <div className="space-y-3">
+                      {attendanceWeeks.map((item) => (
+                        <div key={item.week} className="bg-bg-base border border-border-subtle p-4 rounded-2xl space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-accent-blue uppercase font-mono">SEMANA {item.week}</span>
+                          </div>
+                          <p className="text-[14px] font-bold text-text-main">{item.dates}</p>
+                          <div className="flex items-center gap-2">
+                            <div className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              item.location.includes('PB') ? 'bg-emerald-500' : 
+                              item.location.includes('Piso') ? 'bg-amber-500' : 'bg-accent-blue'
+                            )} />
+                            <span className="text-[12px] text-text-muted font-medium">{item.location}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-4 bg-accent-blue/5 rounded-xl border border-accent-blue/10 flex items-start gap-3">
+                      <Info className="w-4 h-4 text-accent-blue shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-text-muted italic leading-relaxed">
+                        Presencialidad alternada. El resto de las semanas la cursada es remota.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

@@ -22,7 +22,7 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'login' | 'register'>('login');
-  const [activeNav, setActiveNav] = useState<'procedures' | 'templates' | 'authorities' | 'wizard' | 'academic_plan'>('procedures');
+  const [activeNav, setActiveNav] = useState<'procedures' | 'authorities' | 'wizard' | 'academic_plan'>('procedures');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -190,17 +190,6 @@ export default function App() {
                           <>
                             <li>
                               <button 
-                                onClick={() => { setActiveNav('templates'); setIsMobileMenuOpen(false); }}
-                                className={cn(
-                                  "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
-                                  activeNav === 'templates' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
-                                )}
-                              >
-                                Plantillas
-                              </button>
-                            </li>
-                            <li>
-                              <button 
                                 onClick={() => { setActiveNav('authorities'); setIsMobileMenuOpen(false); }}
                                 className={cn(
                                   "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
@@ -286,17 +275,6 @@ export default function App() {
                     <>
                       <li>
                         <button 
-                          onClick={() => setActiveNav('templates')}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 text-[14px] font-medium rounded-lg transition-colors text-left",
-                            activeNav === 'templates' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
-                          )}
-                        >
-                          Plantillas
-                        </button>
-                      </li>
-                      <li>
-                        <button 
                           onClick={() => setActiveNav('authorities')}
                           className={cn(
                             "w-full flex items-center gap-3 px-3 py-2.5 text-[14px] font-medium rounded-lg transition-colors text-left",
@@ -308,18 +286,6 @@ export default function App() {
                       </li>
                     </>
                   )}
-                  <div className="pt-4 mt-4 border-t border-border-subtle opacity-50">
-                    <li>
-                      <button className="w-full flex items-center gap-3 px-3 py-2.5 text-[14px] font-medium text-text-muted rounded-lg cursor-not-allowed">
-                        Calendario Académico
-                      </button>
-                    </li>
-                    <li>
-                      <button className="w-full flex items-center gap-3 px-3 py-2.5 text-[14px] font-medium text-text-muted rounded-lg cursor-not-allowed">
-                        Notificaciones
-                      </button>
-                    </li>
-                  </div>
                 </ul>
               </nav>
 
