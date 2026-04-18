@@ -22,11 +22,25 @@
       "properties": {
         "id": { "type": "string" },
         "studentId": { "type": "string", "description": "UID of the student" },
-        "type": { "type": "string", "enum": ["alumno_regular", "examen", "equivalencias", "reinscripcion"] },
-        "status": { "type": "string", "enum": ["pending", "in_review", "approved", "rejected"] },
+        "type": { "type": "string", "enum": ["alumno_regular", "examen", "equivalencias", "readmision", "pase"] },
+        "status": { "type": "string", "enum": ["pending", "in_review", "approved", "rejected", "action_required"] },
         "caseNumber": { "type": "string", "description": "Generated expediente number" },
         "data": { "type": "object", "description": "Fields extracted or filled for the PDF template" },
         "rejectionReason": { "type": "string", "description": "Explanation for rejection given by admin" },
+        "messages": { 
+          "type": "array", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "senderRole": { "type": "string", "enum": ["student", "admin"] },
+              "senderName": { "type": "string" },
+              "content": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "certificateTramiteNumber": { "type": "string", "description": "Reference number for partial studies certificate" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

@@ -74,7 +74,7 @@ export default function AcademicChatbot() {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed bottom-6 right-6 w-full max-w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl border border-border-subtle flex flex-col z-[70] overflow-hidden"
+            className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:max-w-[400px] h-[100dvh] sm:h-[600px] bg-sidebar-bg sm:rounded-2xl shadow-2xl border-t sm:border border-border-subtle flex flex-col z-[70] overflow-hidden transition-colors"
           >
             {/* Header */}
             <div className="bg-primary-brand p-4 text-white flex items-center justify-between">
@@ -125,7 +125,7 @@ export default function AcademicChatbot() {
                     "max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed",
                     m.role === 'user' 
                       ? "bg-accent-blue text-white rounded-tr-none shadow-sm" 
-                      : "bg-white border border-border-subtle text-text-main rounded-tl-none shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                      : "bg-sidebar-bg border border-border-subtle text-text-main rounded-tl-none shadow-sm"
                   )}>
                     {m.role === 'model' ? (
                       <div className="markdown-content">
@@ -142,7 +142,7 @@ export default function AcademicChatbot() {
                   <div className="w-8 h-8 bg-primary-brand/10 rounded-lg flex items-center justify-center shrink-0">
                     <Bot className="w-4 h-4 text-primary-brand" />
                   </div>
-                  <div className="bg-white border border-border-subtle p-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
+                  <div className="bg-sidebar-bg border border-border-subtle p-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-primary-brand" />
                     <span className="text-xs text-text-muted">Pensando...</span>
                   </div>
@@ -151,7 +151,7 @@ export default function AcademicChatbot() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-border-subtle">
+            <div className="p-4 bg-sidebar-bg border-t border-border-subtle transition-colors">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -159,12 +159,12 @@ export default function AcademicChatbot() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Ej: ¿Qué necesito para cursar Redes?"
-                  className="flex-1 px-4 py-2 bg-bg-base border border-border-subtle rounded-xl text-sm outline-none focus:ring-2 focus:ring-accent-blue/50 transition-all"
+                  className="flex-1 px-4 py-2 bg-bg-base border border-border-subtle rounded-xl text-sm outline-none focus:ring-2 focus:ring-accent-blue/50 transition-all text-text-main"
                 />
                 <button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
-                  className="p-2 bg-primary-brand text-white rounded-xl disabled:opacity-50 hover:bg-opacity-90 transition-all flex items-center justify-center w-10 h-10"
+                  className="p-2 bg-primary-brand text-bg-base rounded-xl disabled:opacity-50 hover:bg-opacity-90 transition-all flex items-center justify-center w-10 h-10"
                 >
                   <Send className="w-4 h-4" />
                 </button>

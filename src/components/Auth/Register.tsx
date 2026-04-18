@@ -56,7 +56,7 @@ export default function Register({ onSwitch }: RegisterProps) {
   };
 
   return (
-    <div className="w-full max-w-md bg-white p-10 rounded-2xl border border-border-subtle">
+    <div className="w-full max-w-md bg-sidebar-bg p-6 sm:p-10 rounded-2xl border border-border-subtle shadow-sm transition-colors duration-300">
       <div className="mb-8">
         <h2 className="text-[28px] font-bold tracking-tight text-text-main">Registro</h2>
         <p className="text-text-muted mt-2">Crea tu cuenta institucional</p>
@@ -72,7 +72,7 @@ export default function Register({ onSwitch }: RegisterProps) {
               required
               value={formData.fullName}
               onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
+              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40 text-text-main"
               placeholder="Juan Pérez"
             />
           </div>
@@ -88,7 +88,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 required
                 value={formData.dni}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
+                className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40 text-text-main"
                 placeholder="12345678"
               />
             </div>
@@ -102,7 +102,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 required
                 value={formData.career}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all appearance-none cursor-pointer text-sm"
+                className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all appearance-none cursor-pointer text-sm text-text-main"
               >
                 <option value="" disabled>Seleccionar...</option>
                 <option value="TSAS">TSAS</option>
@@ -123,7 +123,7 @@ export default function Register({ onSwitch }: RegisterProps) {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
+              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40 text-text-main"
               placeholder="alumno@ifts18.edu.ar"
             />
           </div>
@@ -139,14 +139,14 @@ export default function Register({ onSwitch }: RegisterProps) {
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
+              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40 text-text-main"
               placeholder="••••••••"
             />
           </div>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-lg text-xs">
+          <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg text-xs border border-red-100 dark:border-red-500/20">
             <AlertCircle className="w-4 h-4" />
             <span>{error}</span>
           </div>
@@ -155,7 +155,7 @@ export default function Register({ onSwitch }: RegisterProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary-brand hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2"
+          className="w-full bg-primary-brand hover:opacity-90 disabled:opacity-50 text-bg-base font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2"
         >
           {loading ? 'Creando cuenta...' : (
             <>

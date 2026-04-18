@@ -4,13 +4,15 @@ export type ProcedureType =
   | 'alumno_regular' 
   | 'examen' 
   | 'equivalencias' 
-  | 'reinscripcion';
+  | 'readmision'
+  | 'pase';
 
 export type ProcedureStatus = 
   | 'pending' 
   | 'in_review' 
   | 'approved' 
-  | 'rejected';
+  | 'rejected'
+  | 'action_required';
 
 export interface UserProfile {
   uid: string;
@@ -31,6 +33,14 @@ export interface Authority {
 
 export type SubmissionMethod = 'print' | 'digital';
 
+export interface ProcedureMessage {
+  id: string;
+  senderRole: UserRole;
+  senderName: string;
+  content: string;
+  timestamp: string;
+}
+
 export interface ProcedureRequest {
   id: string;
   studentId: string;
@@ -41,6 +51,8 @@ export interface ProcedureRequest {
   submissionMethod: SubmissionMethod;
   authorityId?: string;
   rejectionReason?: string;
+  messages?: ProcedureMessage[];
+  certificateTramiteNumber?: string;
   assignedAdminId?: string;
   createdAt: string;
   updatedAt: string;
@@ -63,5 +75,6 @@ export const PROCEDURE_LABELS: Record<ProcedureType, string> = {
   alumno_regular: "Constancia de Alumno Regular",
   examen: "Constancia de Examen",
   equivalencias: "Solicitud de Equivalencias",
-  reinscripcion: "Solicitud de Reinscripción"
+  readmision: "Solicitud de Readmisión",
+  pase: "Solicitud de Pase"
 };

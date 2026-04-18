@@ -98,14 +98,14 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
   return (
     <div className="space-y-10">
       {/* Welcome Section */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-[32px] font-bold tracking-[-0.03em] text-text-main leading-tight mb-2">
+          <h1 className="text-[24px] sm:text-[32px] font-bold tracking-[-0.03em] text-text-main leading-tight mb-2">
             {activeTab === 'academic_plan' 
               ? 'Plan de Estudios TSAS' 
               : (profile?.role === 'admin' ? 'Panel de Administración' : 'Tramitación de Constancias')}
           </h1>
-          <p className="text-[16px] text-text-muted">
+          <p className="text-[14px] sm:text-[16px] text-text-muted">
             {activeTab === 'academic_plan'
               ? 'Consulta las materias, requisitos y docentes de tu carrera.'
               : (profile?.role === 'admin' 
@@ -115,11 +115,11 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
         </div>
 
         {profile?.role === 'admin' && (
-          <div className="flex bg-white p-1 border border-border-subtle rounded-xl shadow-sm">
+          <div className="flex bg-sidebar-bg p-1 border border-border-subtle rounded-xl shadow-sm overflow-x-auto whitespace-nowrap">
             <button 
               onClick={() => onNavChange?.('procedures')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-semibold transition-all focus:outline-none",
+                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all focus:outline-none",
                 activeTab === 'procedures' ? "bg-bg-base text-text-main shadow-sm" : "text-text-muted hover:text-text-main"
               )}
             >
@@ -128,7 +128,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
             <button 
               onClick={() => onNavChange?.('templates')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-semibold transition-all focus:outline-none",
+                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all focus:outline-none",
                 activeTab === 'templates' ? "bg-bg-base text-text-main shadow-sm" : "text-text-muted hover:text-text-main"
               )}
             >
@@ -137,7 +137,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
             <button 
               onClick={() => onNavChange?.('authorities')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-semibold transition-all focus:outline-none",
+                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all focus:outline-none",
                 activeTab === 'authorities' ? "bg-bg-base text-text-main shadow-sm" : "text-text-muted hover:text-text-main"
               )}
             >
@@ -173,7 +173,7 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
                 </div>
                 
                 <div className="p-8 border-2 border-dashed border-border-subtle rounded-2xl bg-bg-base/50 text-center space-y-4 group hover:border-accent-blue transition-colors cursor-pointer" onClick={() => setShowWizard(true)}>
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-border-subtle group-hover:text-accent-blue">
+                  <div className="w-16 h-16 bg-sidebar-bg rounded-full flex items-center justify-center mx-auto shadow-sm border border-border-subtle group-hover:text-accent-blue">
                     <Plus className="w-8 h-8" />
                   </div>
                   <div>
@@ -185,11 +185,11 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
             )}
 
             <div className="card-minimal overflow-hidden !p-0">
-              <div className="p-6 border-b border-border-subtle flex items-center justify-between">
+              <div className="p-4 sm:p-6 border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="section-title mb-0">
                   {profile?.role === 'admin' ? 'Todos los Expedientes' : 'Expedientes Recientes'}
                 </h2>
-                <div className="relative w-64">
+                <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3 top-2 w-4 h-4 text-text-muted" />
                   <input 
                     type="text" 
@@ -208,23 +208,23 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
                       layout
                       key={proc.id} 
                       onClick={() => setSelectedProcedure(proc)}
-                      className="p-5 hover:bg-bg-base transition-colors flex items-center justify-between group cursor-pointer"
+                      className="p-4 sm:p-5 hover:bg-bg-base transition-colors flex items-center justify-between group cursor-pointer"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-bg-base rounded-lg flex items-center justify-center text-text-muted group-hover:text-accent-blue transition-colors">
-                          <FileText className="w-5 h-5" />
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-base rounded-lg flex items-center justify-center text-text-muted group-hover:text-accent-blue transition-colors shrink-0">
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                        <div>
-                          <div className="text-[14px] font-semibold text-text-main">{PROCEDURE_LABELS[proc.type]}</div>
-                          <div className="text-[12px] text-text-muted">
+                        <div className="min-w-0">
+                          <div className="text-[13px] sm:text-[14px] font-semibold text-text-main truncate">{PROCEDURE_LABELS[proc.type]}</div>
+                          <div className="text-[11px] sm:text-[12px] text-text-muted">
                              {format(new Date(proc.createdAt), "d MMM yyyy", { locale: es })}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2 sm:gap-6 ml-4">
                         <div className="flex flex-col items-end">
-                          <span className="text-[13px] font-mono font-bold text-accent-blue">#{proc.caseNumber.split('-').pop()}</span>
+                          <span className="text-[11px] sm:text-[13px] font-mono font-bold text-accent-blue">#{proc.caseNumber.split('-').pop()}</span>
                           <div className={cn(
                             "text-[10px] uppercase font-bold px-2 py-0.5 rounded mt-1",
                             proc.status === 'approved' ? "bg-emerald-100 text-emerald-700" :
@@ -249,9 +249,9 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
 
           {/* Right Panel */}
           <div className="space-y-6">
-            <div className="card-minimal bg-[#EFF6FF] !border-[#BFDBFE]">
-               <h2 className="section-title text-[#1E40AF]">Información Útil</h2>
-               <p className="text-[12px] leading-[1.6] text-[#1E40AF]">
+            <div className="card-minimal bg-[#EFF6FF] dark:bg-blue-500/10 !border-[#BFDBFE] dark:!border-blue-500/20">
+               <h2 className="section-title text-[#1E40AF] dark:text-blue-400">Información Útil</h2>
+               <p className="text-[12px] leading-[1.6] text-[#1E40AF] dark:text-blue-300">
                   {profile?.role === 'admin' 
                     ? 'Como administrador puedes supervisar todos los expedientes y gestionar las plantillas de trámites. Las plantillas definen qué campos debe completar el alumno.'
                     : 'Los trámites de constancias regulares se procesan en un máximo de 48hs hábiles. Podrás descargar el PDF firmado digitalmente desde la sección "Mis Expedientes".'}
@@ -279,12 +279,12 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
       {/* Wizard Modal */}
       <AnimatePresence>
         {showWizard && (
-          <div className="fixed inset-0 bg-text-main/20 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-text-main/20 backdrop-blur-[2px] z-[100] flex items-center justify-center sm:p-4">
             <motion.div 
-              initial={{ scale: 0.98, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.98, opacity: 0 }}
-              className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-border-subtle overflow-hidden max-h-[90vh] flex flex-col"
+              initial={{ scale: 0.98, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.98, opacity: 0, y: 20 }}
+              className="bg-sidebar-bg w-full h-[100dvh] sm:h-auto sm:max-w-2xl sm:rounded-2xl shadow-2xl border border-border-subtle overflow-hidden sm:max-h-[90vh] flex flex-col"
             >
               <ProcedureWizard profile={profile} onClose={() => setShowWizard(false)} />
             </motion.div>
@@ -295,13 +295,13 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
       {/* Details Modal */}
       <AnimatePresence>
         {selectedProcedure && (
-          <div className="fixed inset-0 bg-text-main/20 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-text-main/20 backdrop-blur-[2px] z-[100] flex items-center justify-center sm:p-4">
             <motion.div 
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-white w-full max-w-2xl h-full ml-auto rounded-l-2xl shadow-2xl border-l border-border-subtle overflow-hidden flex flex-col"
+              className="bg-sidebar-bg w-full h-[100dvh] sm:h-full sm:max-w-2xl sm:ml-auto sm:rounded-l-2xl shadow-2xl border-l border-border-subtle overflow-hidden flex flex-col pt-safe"
             >
               <ProcedureDetails 
                 procedure={selectedProcedure} 

@@ -14,7 +14,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard';
 import ErrorBoundary from './components/Common/ErrorBoundary';
-import { GraduationCap, Loader2, LogOut } from 'lucide-react';
+import { GraduationCap, Loader2, LogOut, Menu, X, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -23,6 +23,22 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'login' | 'register'>('login');
   const [activeNav, setActiveNav] = useState<'procedures' | 'templates' | 'authorities' | 'wizard' | 'academic_plan'>('procedures');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    // Default to dark if no preference is saved
+    return saved !== 'light';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -68,13 +84,158 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-bg-base font-sans text-text-main flex overflow-hidden">
+      <div className="min-h-screen bg-bg-base font-sans text-text-main flex flex-col lg:flex-row overflow-hidden">
         {user && profile ? (
           <>
-            {/* Sidebar */}
-            <aside className="w-[260px] bg-sidebar-bg border-r border-border-subtle flex flex-col p-8 fixed h-full z-20">
+            {/* Mobile Header */}
+            <div className="lg:hidden bg-sidebar-bg border-b border-border-subtle p-4 flex items-center justify-between sticky top-0 z-30">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary-brand rounded-lg flex items-center justify-center text-bg-base">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <span className="text-[16px] font-extrabold tracking-tight text-primary-brand">IFTS 18</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className="p-2 text-text-muted hover:text-text-main transition-colors"
+                  title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+                >
+                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="p-2 text-text-main hover:bg-bg-base rounded-lg transition-colors"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Drawer Overlay */}
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="fixed inset-0 bg-text-main/20 backdrop-blur-[2px] z-[40] lg:hidden"
+                  />
+                  <motion.aside 
+                    initial={{ x: '-100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '-100%' }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                    className="fixed left-0 top-0 bottom-0 w-[280px] bg-sidebar-bg shadow-2xl z-[50] flex flex-col p-8 lg:hidden"
+                  >
+                    <div className="flex items-center justify-between mb-12">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-primary-brand rounded-lg flex items-center justify-center text-bg-base">
+                          <GraduationCap className="w-5 h-5" />
+                        </div>
+                        <span className="text-[18px] font-extrabold tracking-tight text-primary-brand">IFTS 18</span>
+                      </div>
+                      <button 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="p-2 text-text-muted hover:text-text-main transition-colors"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
+                    </div>
+
+                    <nav className="flex-1">
+                      <ul className="space-y-4">
+                        {profile.role === 'student' && (
+                          <>
+                            <li>
+                              <button 
+                                onClick={() => { setActiveNav('wizard'); setIsMobileMenuOpen(false); }}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
+                                  activeNav === 'wizard' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
+                                )}
+                              >
+                                Nueva Solicitud
+                              </button>
+                            </li>
+                            {profile.career === 'TSAS' && (
+                              <li>
+                                <button 
+                                  onClick={() => { setActiveNav('academic_plan'); setIsMobileMenuOpen(false); }}
+                                  className={cn(
+                                    "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
+                                    activeNav === 'academic_plan' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
+                                  )}
+                                >
+                                  Plan de Estudios
+                                </button>
+                              </li>
+                            )}
+                          </>
+                        )}
+                        <li>
+                          <button 
+                            onClick={() => { setActiveNav('procedures'); setIsMobileMenuOpen(false); }}
+                            className={cn(
+                              "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
+                              activeNav === 'procedures' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
+                            )}
+                          >
+                            {profile.role === 'admin' ? 'Expedientes' : 'Mis Expedientes'}
+                          </button>
+                        </li>
+                        {profile.role === 'admin' && (
+                          <>
+                            <li>
+                              <button 
+                                onClick={() => { setActiveNav('templates'); setIsMobileMenuOpen(false); }}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
+                                  activeNav === 'templates' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
+                                )}
+                              >
+                                Plantillas
+                              </button>
+                            </li>
+                            <li>
+                              <button 
+                                onClick={() => { setActiveNav('authorities'); setIsMobileMenuOpen(false); }}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors text-left",
+                                  activeNav === 'authorities' ? "text-text-main bg-bg-base shadow-sm" : "text-text-muted hover:text-text-main"
+                                )}
+                              >
+                                Firmas
+                              </button>
+                            </li>
+                          </>
+                        )}
+                      </ul>
+                    </nav>
+
+                    <div className="mt-auto pt-6 border-t border-border-subtle flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-[14px] font-semibold">{profile.fullName}</span>
+                        <span className="text-[12px] text-text-muted uppercase">DNI {profile.dni}</span>
+                      </div>
+                      <button 
+                        onClick={handleLogout}
+                        className="p-2 text-text-muted hover:text-red-600 transition-colors"
+                      >
+                        <LogOut className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </motion.aside>
+                </>
+              )}
+            </AnimatePresence>
+
+            {/* Desktop Sidebar */}
+            <aside className="w-[260px] bg-sidebar-bg border-r border-border-subtle hidden lg:flex flex-col p-8 fixed h-full z-20">
               <div className="flex items-center gap-2.5 mb-12">
-                <div className="w-8 h-8 bg-primary-brand rounded-lg flex items-center justify-center text-white">
+                <div className="w-8 h-8 bg-primary-brand rounded-lg flex items-center justify-center text-bg-base">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <span className="text-[18px] font-extrabold tracking-tight text-primary-brand leading-tight">AUTOGESTIÓN IFTS 18</span>
@@ -167,18 +328,27 @@ export default function App() {
                   <span className="text-[14px] font-semibold">{profile.fullName}</span>
                   <span className="text-[12px] text-text-muted uppercase">DNI {profile.dni}</span>
                 </div>
-                <button 
-                  onClick={handleLogout}
-                  className="p-2 text-text-muted hover:text-red-600 transition-colors"
-                  title="Cerrar sesión"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="p-2 text-text-muted hover:text-accent-blue transition-colors"
+                    title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+                  >
+                    {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  </button>
+                  <button 
+                    onClick={handleLogout}
+                    className="p-2 text-text-muted hover:text-red-600 transition-colors"
+                    title="Cerrar sesión"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 ml-[260px] p-12 overflow-y-auto">
+            <main className="flex-1 lg:ml-[260px] p-6 sm:p-8 lg:p-12 overflow-y-auto min-h-screen">
               <AnimatePresence mode="wait">
                 <motion.div
                   key="dashboard"

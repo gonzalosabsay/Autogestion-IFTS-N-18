@@ -37,10 +37,12 @@ service cloud.firestore {
     function isValidProcedure(data) {
       return data.keys().hasAll(['studentId', 'type', 'status', 'caseNumber', 'createdAt', 'updatedAt']) &&
              data.studentId is string &&
-             data.type in ['alumno_regular', 'examen', 'equivalencias', 'reinscripcion'] &&
-             data.status in ['pending', 'in_review', 'approved', 'rejected'] &&
+             data.type in ['alumno_regular', 'examen', 'equivalencias', 'readmision', 'pase'] &&
+             data.status in ['pending', 'in_review', 'approved', 'rejected', 'action_required'] &&
              (!('submissionMethod' in data) || data.submissionMethod in ['print', 'digital']) &&
              (!('rejectionReason' in data) || data.rejectionReason is string) &&
+             (!('messages' in data) || data.messages is list) &&
+             (!('certificateTramiteNumber' in data) || data.certificateTramiteNumber is string) &&
              (!('assignedAdminId' in data) || data.assignedAdminId is string || data.assignedAdminId == null) &&
              data.caseNumber is string &&
              data.createdAt is string &&

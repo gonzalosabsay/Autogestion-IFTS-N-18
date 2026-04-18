@@ -34,9 +34,40 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
   ];
 
   const isPhysicalOnly = type === 'examen' || type === 'equivalencias';
+  const isDigitalOnly = type === 'pase';
 
   const handleTypeSelect = async (t: ProcedureType) => {
     setType(t);
+    
+    // For 'pase', skip method selection and go straight to Step 4 after setting fields
+    if (t === 'pase') {
+      setSubmissionMethod('digital');
+      const paseFields: TemplateField[] = [
+        { fieldId: 'nombre', label: 'Nombre', type: 'text', required: true },
+        { fieldId: 'apellido', label: 'Apellido', type: 'text', required: true },
+        { fieldId: 'email', label: 'Mail', type: 'text', required: true },
+        { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
+        { fieldId: 'dni', label: 'DNI', type: 'text', required: true },
+        { fieldId: 'institucion_origen', label: 'Institución de Origen', type: 'text', required: true },
+        { fieldId: 'institucion_destino', label: 'Institución Destino', type: 'text', required: true },
+      ];
+      setTemplateFields(paseFields);
+      
+      if (profile) {
+        setFormData({
+          nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
+          apellido: profile.fullName.split(' ').slice(-1)[0],
+          email: profile.email,
+          fecha_nacimiento: profile.birthDate || '',
+          dni: profile.dni,
+          institucion_origen: 'IFTS 18', // Defaulting to current if it's a transfer OUT, or let them type
+          institucion_destino: '',
+        });
+      }
+      setStep(4);
+      return;
+    }
+
     setStep(2);
   };
 
@@ -45,6 +76,39 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
     setLoading(true);
     const t = type!;
     try {
+      // Hardcoded template fields for Readmisión to match specific user request
+      if (t === 'readmision') {
+        const readmisionFields: TemplateField[] = [
+          { fieldId: 'carrera_solicitada', label: 'Carrera para Readmisión', type: 'text', required: true },
+          { fieldId: 'apellido', label: 'Apellidos', type: 'text', required: true },
+          { fieldId: 'nombre', label: 'Nombres', type: 'text', required: true },
+          { fieldId: 'dni', label: 'D.N.I.', type: 'text', required: true },
+          { fieldId: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
+          { fieldId: 'domicilio', label: 'Domicilio', type: 'text', required: true },
+          { fieldId: 'localidad', label: 'Localidad y Código Postal', type: 'text', required: true },
+          { fieldId: 'telefono', label: 'Teléfono', type: 'text', required: true },
+          { fieldId: 'email', label: 'e-mail', type: 'text', required: true },
+          { fieldId: 'carrera', label: 'Carrera Actual', type: 'text', required: true },
+          { fieldId: 'anio_ingreso', label: 'Año de ingreso', type: 'text', required: true },
+          { fieldId: 'rematriculaciones', label: 'Rematriculaciones Anteriores', type: 'text', required: false },
+          { fieldId: 'motivo_readmision', label: 'Motivo de Readmisión', type: 'select', required: true },
+        ];
+        setTemplateFields(readmisionFields);
+        
+        if (profile) {
+          setFormData({
+            carrera_solicitada: profile.career,
+            apellido: profile.fullName.split(' ').slice(-1)[0],
+            nombre: profile.fullName.split(' ').slice(0, -1).join(' '),
+            dni: profile.dni,
+            email: profile.email,
+            carrera: profile.career,
+          });
+        }
+        setStep(4);
+        return;
+      }
+
       // Check if template exists in Firestore
       const path = `templates/${t}`;
       const docRef = doc(db, 'templates', t);
@@ -230,7 +294,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
   return (
     <>
       {/* Header */}
-      <div className="p-6 border-b border-border-subtle bg-white flex items-center justify-between">
+      <div className="p-6 border-b border-border-subtle bg-sidebar-bg flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
           <div className="bg-bg-base text-accent-blue p-2 rounded-lg border border-border-subtle shadow-sm">
             {steps[step - 1].icon}
@@ -255,7 +319,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-8 bg-white">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-sidebar-bg transition-colors">
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div 
@@ -270,7 +334,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                   key={t}
                   disabled={loading}
                   onClick={() => handleTypeSelect(t)}
-                  className="p-5 bg-white border border-border-subtle rounded-xl text-left hover:border-accent-blue hover:bg-bg-base transition-all group disabled:opacity-50"
+                  className="p-5 bg-sidebar-bg border border-border-subtle rounded-xl text-left hover:border-accent-blue hover:bg-bg-base transition-all group disabled:opacity-50"
                 >
                   <div className="font-semibold text-[14px] text-text-main group-hover:text-accent-blue transition-colors">
                     {loading && type === t ? (
@@ -318,7 +382,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                 <button
                   onClick={() => handleMethodSelect('print')}
                   className={cn(
-                    "p-8 bg-white border border-border-subtle rounded-2xl text-center hover:border-accent-blue hover:bg-bg-base transition-all group flex flex-col items-center gap-4",
+                    "p-8 bg-sidebar-bg border border-border-subtle rounded-2xl text-center hover:border-accent-blue hover:bg-bg-base transition-all group flex flex-col items-center gap-4",
                     isPhysicalOnly && "ring-2 ring-accent-blue border-accent-blue shadow-md"
                   )}
                 >
@@ -338,7 +402,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                   onClick={() => !isPhysicalOnly && handleMethodSelect('digital')}
                   disabled={isPhysicalOnly}
                   className={cn(
-                    "p-8 bg-white border border-border-subtle rounded-2xl text-center hover:border-accent-blue hover:bg-bg-base transition-all group flex flex-col items-center gap-4",
+                    "p-8 bg-sidebar-bg border border-border-subtle rounded-2xl text-center hover:border-accent-blue hover:bg-bg-base transition-all group flex flex-col items-center gap-4",
                     isPhysicalOnly && "opacity-50 grayscale cursor-not-allowed grayscale-[0.5]"
                   )}
                 >
@@ -352,7 +416,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                       <strong> Proceso 100% online.</strong>
                     </p>
                     {isPhysicalOnly && (
-                      <span className="inline-block mt-3 px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-bold rounded-full uppercase tracking-tighter">
+                      <span className="inline-block mt-3 px-2 py-0.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-bold rounded-full uppercase tracking-tighter">
                         No disponible para este trámite
                       </span>
                     )}
@@ -383,7 +447,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                   disabled={loading}
                 />
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto shadow-sm border border-border-subtle group-hover:text-accent-blue">
+                  <div className="w-12 h-12 bg-sidebar-bg rounded-lg flex items-center justify-center mx-auto shadow-sm border border-border-subtle group-hover:text-accent-blue">
                     {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
                   </div>
                   <div className="text-text-muted text-[14px]">
@@ -433,6 +497,9 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
 
                   return templateFields.filter(f => {
                     const label = f.label.toLowerCase();
+                    if (type === 'readmision') {
+                      return true;
+                    }
                     if (type === 'alumno_regular') {
                       const isDay = label.includes('día') || label.includes('dia');
                       const isAuth = label.includes('autoridad') || label.includes('presenta');
@@ -453,6 +520,46 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                     const isDayField = label.includes('día') || label.includes('dia');
                     const isEquivalencyList = type === 'equivalencias' && (label.includes('origen') || label.includes('actual'));
                     
+                    if (field.type === 'select' && type === 'readmision' && field.fieldId === 'motivo_readmision') {
+                      const reasons = [
+                        'Enfermedad o discapacidad',
+                        'Prosecución de otros estudios universitarios o terciarios',
+                        'Comisiones o viajes de estudios',
+                        'Ausencia por traslado al interior o exterior del país',
+                        'Embarazo',
+                        'Otras causales de equivalente importancia que las anteriores'
+                      ];
+                      
+                      return (
+                        <div key={field.fieldId} className="space-y-3">
+                          <label className="text-[11px] uppercase tracking-wider font-bold text-text-muted">{field.label}</label>
+                          <div className="grid grid-cols-1 gap-2">
+                            {reasons.map(reason => (
+                              <button
+                                key={reason}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, [field.fieldId]: reason })}
+                                className={cn(
+                                  "text-left p-3 rounded-xl border text-sm transition-all flex items-start gap-3",
+                                  formData[field.fieldId] === reason 
+                                    ? "bg-accent-blue/5 border-accent-blue text-accent-blue ring-1 ring-accent-blue/20" 
+                                    : "bg-sidebar-bg border-border-subtle text-text-muted hover:border-text-main"
+                                )}
+                              >
+                                <div className={cn(
+                                  "w-4 h-4 rounded-full border mt-0.5 flex items-center justify-center shrink-0",
+                                  formData[field.fieldId] === reason ? "border-accent-blue bg-accent-blue" : "border-text-muted"
+                                )}>
+                                  {formData[field.fieldId] === reason && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                </div>
+                                <span>{reason}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
                     if (type === 'alumno_regular' && isDayField) {
                       if (dayFieldRendered) return null;
                       dayFieldRendered = true;
@@ -463,26 +570,26 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                       equivalencyRendered = true;
                       
                       return (
-                        <div key="equivalency-section" className="space-y-4 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                        <div key="equivalency-section" className="space-y-4 p-6 bg-bg-base rounded-2xl border border-border-subtle">
                           <div className="flex items-center justify-between mb-2">
-                             <h4 className="text-[14px] font-bold text-slate-800">Equivalencias Solicitadas</h4>
+                             <h4 className="text-[14px] font-bold text-text-main">Equivalencias Solicitadas</h4>
                              <button 
                                type="button"
                                onClick={() => setEquivalencyPairs([...equivalencyPairs, { origin: '', local: '' }])}
-                               className="p-1 px-3 bg-white border border-slate-300 rounded-lg text-xs font-bold text-accent-blue hover:bg-bg-base transition-colors flex items-center gap-1 shadow-sm"
+                               className="p-1 px-3 bg-sidebar-bg border border-border-subtle rounded-lg text-xs font-bold text-accent-blue hover:bg-bg-base transition-colors flex items-center gap-1 shadow-sm"
                              >
                                 <Plus className="w-3 h-3" /> Agregar Materia
                              </button>
                           </div>
-                          <p className="text-[11px] text-slate-500 mb-4 italic">Asocie cada materia aprobada con la materia del plan actual que desea reconocer.</p>
+                          <p className="text-[11px] text-text-muted mb-4 italic">Asocie cada materia aprobada con la materia del plan actual que desea reconocer.</p>
                           
                           <div className="space-y-3">
                             {equivalencyPairs.map((pair, idx) => (
                               <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-center">
                                 <div className="space-y-1">
-                                  <label className="text-[9px] uppercase font-bold text-slate-400">Asignatura origen</label>
+                                  <label className="text-[9px] uppercase font-bold text-text-muted">Asignatura origen</label>
                                   <input 
-                                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-accent-blue outline-none"
+                                    className="w-full px-3 py-2 text-sm bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-text-main"
                                     placeholder="Nombre materia origen..."
                                     value={pair.origin}
                                     onChange={(e) => {
@@ -492,14 +599,14 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                                     }}
                                   />
                                 </div>
-                                <div className="flex justify-center text-slate-300 pt-4 hidden md:flex">
+                                <div className="flex justify-center text-text-muted pt-4 hidden md:flex">
                                   <ArrowRight className="w-4 h-4" />
                                 </div>
                                 <div className="space-y-1">
-                                  <label className="text-[9px] uppercase font-bold text-slate-400">Asignatura IFTS 18</label>
+                                  <label className="text-[9px] uppercase font-bold text-text-muted">Asignatura IFTS 18</label>
                                   <div className="flex gap-2">
                                     <input 
-                                      className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-accent-blue outline-none"
+                                      className="flex-1 px-3 py-2 text-sm bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-text-main"
                                       placeholder="Nombre materia local..."
                                       value={pair.local}
                                       onChange={(e) => {
@@ -511,7 +618,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                                     {equivalencyPairs.length > 1 && (
                                       <button 
                                         onClick={() => setEquivalencyPairs(equivalencyPairs.filter((_, i) => i !== idx))}
-                                        className="p-2 text-slate-400 hover:text-red-500"
+                                        className="p-2 text-text-muted hover:text-red-500"
                                       >
                                         <X className="w-4 h-4" />
                                       </button>
@@ -547,7 +654,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                                     className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all border ${
                                       isSelected
                                         ? 'bg-accent-blue text-white border-accent-blue shadow-md'
-                                        : 'bg-white text-text-muted border-border-subtle hover:border-accent-blue'
+                                        : 'bg-bg-base text-text-muted border-border-subtle hover:border-accent-blue'
                                     }`}
                                   >
                                     {day}
@@ -565,7 +672,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                                     <select
                                       value={time}
                                       onChange={(e) => updateTime(field.fieldId, day, e.target.value)}
-                                      className="flex-1 px-2 py-1 bg-white border border-border-subtle rounded text-[11px] outline-none focus:ring-1 focus:ring-accent-blue"
+                                      className="flex-1 px-2 py-1 bg-bg-base border border-border-subtle rounded text-[11px] outline-none focus:ring-1 focus:ring-accent-blue text-text-main"
                                     >
                                       {TIME_RANGES.map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
@@ -580,7 +687,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                             value={formData[field.fieldId] || ''}
                             onChange={(e) => setFormData({ ...formData, [field.fieldId]: e.target.value })}
                             placeholder={`Ingrese ${field.label.toLowerCase()}`}
-                            className="w-full px-4 py-2.5 bg-white border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-sm transition-all shadow-sm"
+                            className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-sm transition-all shadow-sm text-text-main"
                           />
                         )}
                       </div>
@@ -607,7 +714,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
                   <p className="text-text-muted mt-1">Su solicitud ha sido registrada en el sistema.</p>
                 </div>
                 
-                <div className="p-8 border border-border-subtle rounded-2xl bg-white shadow-sm inline-block min-w-[300px]">
+                <div className="p-8 border border-border-subtle rounded-2xl bg-sidebar-bg shadow-sm inline-block min-w-[300px]">
                   <div className="text-[10px] uppercase font-bold text-text-muted tracking-[0.2em] mb-3">Expediente Generado</div>
                   <div className="text-3xl font-mono font-bold text-accent-blue">
                     {formData.caseNumber || 'GENERANDO...'}
@@ -624,7 +731,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
 
       {/* Footer Navigation */}
       {step < 5 && (
-        <div className="p-6 border-t border-border-subtle bg-white flex justify-between gap-4">
+        <div className="p-6 border-t border-border-subtle bg-sidebar-bg flex justify-between gap-4 transition-colors">
           <button 
             onClick={() => setStep(Math.max(1, step - 1))}
             className="px-6 py-2.5 flex items-center gap-2 text-text-muted hover:text-text-main text-[14px] font-semibold transition-colors disabled:opacity-30"
@@ -638,7 +745,7 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
             <button 
               onClick={handleFinish}
               disabled={loading}
-              className="bg-primary-brand text-white px-8 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-2"
+              className="bg-primary-brand text-bg-base px-8 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-2"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (submissionMethod === 'digital' ? <Check className="w-4 h-4" /> : <Printer className="w-4 h-4" />)}
               {submissionMethod === 'digital' ? 'Generar y Enviar' : 'Imprimir Formulario'}
@@ -656,10 +763,10 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
       )}
       
       {step === 5 && (
-        <div className="p-6 border-t border-slate-100 bg-white">
+        <div className="p-6 border-t border-border-subtle bg-sidebar-bg transition-colors">
           <button 
             onClick={onClose}
-            className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-semibold transition-colors shadow-lg shadow-slate-200"
+            className="w-full bg-sidebar-bg hover:bg-bg-base text-text-main py-3 rounded-xl font-semibold transition-colors shadow-lg border border-border-subtle"
           >
             Volver al Panel
           </button>

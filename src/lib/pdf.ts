@@ -15,6 +15,109 @@ export const generateProcedurePDF = (
   const title = PROCEDURE_LABELS[type];
   const dateStr = format(new Date(), "d 'de' MMMM, yyyy", { locale: es });
 
+  if (type === 'readmision') {
+    // Specialized layout for Readmisión
+    doc.setFont('helvetica', 'normal');
+    
+    // Header
+    doc.setFontSize(8);
+    const headerLines = [
+      'G O B I E R N O   D E   L A   C I U D A D   D E   B U E N O S   A I R E S',
+      'Ministerio de Educación',
+      'Dirección de Formación Técnico Superior',
+      'Instituto de Formación Técnico Superior N° 18',
+      'Mansilla 3643 - C1425BBW - Capital Federal'
+    ];
+    headerLines.forEach((line, i) => {
+      doc.text(line, 105, 15 + (i * 4), { align: 'center' });
+    });
+
+    // Date line
+    doc.setFontSize(10);
+    doc.text(`Ciudad Autónoma de Buenos Aires, ...... de ......................... de 20.......`, 20, 45);
+
+    // Recipient
+    doc.setFont('helvetica', 'bold');
+    doc.text('Sr. Rector IFTS 18', 20, 60);
+    doc.text('Ing Daniel Pelletieri', 20, 65);
+    doc.text('S / D', 20, 70);
+
+    // Body text
+    doc.setFont('helvetica', 'normal');
+    const bodyText = `Visto lo establecido por el Consejo Académico del Instituto, me dirijo a Ud. a fin de solicitar ser readmitido/a en condición de alumno/a regular del IFTS 18 y en consecuencia en la Carrera de ${data.carrera_solicitada || '................................................................................'}`;
+    const splitBody = doc.splitTextToSize(bodyText, 170);
+    doc.text(splitBody, 20, 80);
+
+    // Personal Data
+    doc.setFont('helvetica', 'bold');
+    doc.text('Mis datos personales son:', 20, 100);
+    doc.setFont('helvetica', 'normal');
+    
+    let y = 110;
+    const personalFields = [
+      { label: 'Apellidos:', value: data.apellido || profile?.fullName.split(' ').slice(-1)[0] || '...................................' },
+      { label: 'Nombres:', value: data.nombre || profile?.fullName.split(' ').slice(0, -1).join(' ') || '...................................' },
+      { label: 'Doc.: D.N.I. – L.E. – L.C. – Otro: Nº', value: data.dni || profile?.dni || '...................................' },
+      { label: 'Fecha de Nacimiento:', value: data.fecha_nacimiento || '...................................' },
+      { label: 'Domicilio:', value: data.domicilio || '...................................' },
+      { label: 'Localidad:', value: data.localidad || '...................................' },
+      { label: 'Teléfono:', value: data.telefono || '...................................' },
+      { label: 'e-mail:', value: data.email || profile?.email || '...................................' },
+      { label: 'Carrera:', value: data.carrera || profile?.career || '...................................' },
+      { label: 'Año de ingreso:', value: data.anio_ingreso || '................' },
+      { label: 'Rematriculaciones Anteriores:', value: data.rematriculaciones || '................' }
+    ];
+
+    personalFields.forEach(f => {
+      doc.text(`${f.label} ${f.value}`, 20, y);
+      y += 7;
+    });
+
+    // Reasons
+    y += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Solicito ser readmitido en razón de: (marcar según corresponda)', 20, y);
+    doc.setFont('helvetica', 'normal');
+    y += 8;
+
+    const reasons = [
+      'Enfermedad o discapacidad',
+      'Prosecución de otros estudios universitarios o terciarios',
+      'Comisiones o viajes de estudios',
+      'Ausencia por traslado al interior o exterior del país',
+      'Embarazo',
+      'Otras causales de equivalente importancia que las anteriores'
+    ];
+
+    const selectedReason = data.motivo_readmision;
+    reasons.forEach(r => {
+      const isSelected = selectedReason === r;
+      doc.rect(20, y - 4, 4, 4);
+      if (isSelected) {
+        doc.text('X', 21, y - 1);
+      }
+      doc.text(r, 26, y);
+      y += 7;
+    });
+
+    // Signature
+    y += 20;
+    if (isDigital && authority) {
+      if (authority.signatureUrl) {
+        doc.addImage(authority.signatureUrl, 'PNG', 130, y - 15, 40, 15);
+      }
+      doc.text(authority.name, 130, y + 5);
+      doc.setFontSize(8);
+      doc.text(authority.position, 130, y + 9);
+      doc.setFontSize(10);
+    }
+    doc.line(130, y, 185, y);
+    doc.text('FIRMA DEL ALUMNO', 130, y + 5, { align: 'center' });
+
+    doc.save(`Solicitud_Readmision_${profile?.dni || 'exp'}.pdf`);
+    return;
+  }
+
   // Tight layout to ensure 1 single page
   // Institutional Header (Centered Text Only)
   doc.setDrawColor(0, 0, 0);

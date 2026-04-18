@@ -91,7 +91,7 @@ export default function AuthorityManager() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej: Lic. Juan Pérez"
-                className="w-full px-4 py-2 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-sm"
+                className="w-full px-4 py-2 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-sm text-text-main"
                 required
               />
             </div>
@@ -101,7 +101,7 @@ export default function AuthorityManager() {
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
                 placeholder="Ej: Rector IFTS N°18"
-                className="w-full px-4 py-2 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-sm"
+                className="w-full px-4 py-2 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none text-sm text-text-main"
                 required
               />
             </div>
@@ -127,7 +127,7 @@ export default function AuthorityManager() {
                 </button>
              </div>
              {signatureUrl && (
-               <div className="w-24 h-12 bg-white rounded border border-border-subtle overflow-hidden flex items-center justify-center p-1">
+               <div className="w-24 h-12 bg-sidebar-bg rounded border border-border-subtle overflow-hidden flex items-center justify-center p-1">
                   <img src={signatureUrl} alt="Vista previa" className="max-w-full max-h-full object-contain" />
                </div>
              )}
@@ -153,10 +153,10 @@ export default function AuthorityManager() {
         </div>
         <div className="divide-y divide-border-subtle">
           {authorities.length > 0 ? authorities.map((auth) => (
-            <div key={auth.id} className="p-5 flex items-center justify-between group hover:bg-bg-base transition-colors">
+            <div key={auth.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:bg-bg-base transition-colors">
               <div className="flex items-center gap-4">
                 {auth.signatureUrl ? (
-                  <div className="w-10 h-10 bg-white rounded border border-border-subtle flex items-center justify-center p-1">
+                  <div className="w-10 h-10 bg-sidebar-bg rounded border border-border-subtle flex items-center justify-center p-1">
                     <img src={auth.signatureUrl} alt="Firma" className="max-w-full max-h-full object-contain" />
                   </div>
                 ) : (

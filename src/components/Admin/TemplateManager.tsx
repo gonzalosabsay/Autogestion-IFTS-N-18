@@ -100,7 +100,7 @@ export default function TemplateManager() {
                 className={`w-full p-4 rounded-xl text-left border-2 transition-all ${
                   selectedType === type 
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue' 
-                    : 'border-border-subtle bg-white hover:border-text-muted'
+                    : 'border-border-subtle bg-sidebar-bg hover:border-text-muted text-text-main'
                 }`}
               >
                 <div className="font-semibold text-sm">{label}</div>
@@ -110,9 +110,9 @@ export default function TemplateManager() {
         </div>
 
         <div className="card-minimal space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <h3 className="font-bold">Configuración de Campos</h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <label className="btn-minimal-secondary cursor-pointer flex items-center gap-2">
                 <Upload className="w-4 h-4" />
                 Subir PDF/Imagen
@@ -142,7 +142,7 @@ export default function TemplateManager() {
               </div>
               <div className="divide-y divide-border-subtle border border-border-subtle rounded-xl overflow-hidden">
                 {fields.map((field, idx) => (
-                  <div key={idx} className="p-4 flex items-center justify-between bg-white text-sm">
+                  <div key={idx} className="p-4 flex items-center justify-between bg-sidebar-bg text-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-bg-base rounded flex items-center justify-center text-text-muted">
                         <FileText className="w-4 h-4" />

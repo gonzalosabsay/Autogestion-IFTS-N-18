@@ -27,7 +27,7 @@ export default function Login({ onSwitch }: LoginProps) {
   };
 
   return (
-    <div className="w-full max-w-md bg-white p-10 rounded-2xl border border-border-subtle">
+    <div className="w-full max-w-md bg-sidebar-bg p-6 sm:p-10 rounded-2xl border border-border-subtle shadow-sm transition-colors duration-300">
       <div className="mb-10">
         <h2 className="text-[28px] font-bold tracking-tight text-text-main">Bienvenido</h2>
         <p className="text-text-muted mt-2">Inicia sesión para gestionar tus trámites</p>
@@ -43,7 +43,7 @@ export default function Login({ onSwitch }: LoginProps) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
+              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40 text-text-main"
               placeholder="usuario@ifts18.edu.ar"
             />
           </div>
@@ -58,14 +58,14 @@ export default function Login({ onSwitch }: LoginProps) {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40"
+              className="w-full pl-10 pr-4 py-3 bg-bg-base border border-border-subtle rounded-lg focus:ring-1 focus:ring-accent-blue outline-none transition-all placeholder:text-text-muted/40 text-text-main"
               placeholder="••••••••"
             />
           </div>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-lg text-xs">
+          <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg text-xs border border-red-100 dark:border-red-500/20">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -74,7 +74,7 @@ export default function Login({ onSwitch }: LoginProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary-brand hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2"
+          className="w-full bg-primary-brand hover:opacity-90 disabled:opacity-50 text-bg-base font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2"
         >
           {loading ? 'Ingresando...' : (
             <>
