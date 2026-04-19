@@ -45,6 +45,8 @@ export interface ProcedureMessage {
 export interface ProcedureRequest {
   id: string;
   studentId: string;
+  studentName?: string;
+  studentDni?: string;
   type: ProcedureType;
   status: ProcedureStatus;
   caseNumber: string;

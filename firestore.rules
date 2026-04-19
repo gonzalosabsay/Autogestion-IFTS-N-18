@@ -15,15 +15,15 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email in ["gonzalo.sabsay@gmail.com", "gonzalosabsay@ifts18.edu.ar"] ||
+        (request.auth.token.email in ["gonzalo.sabsay@gmail.com", "gonzalosabsay@ifts18.edu.ar", "alumnos@ifts18.edu.ar"] ||
          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email in ["gonzalosabsay@ifts18.edu.ar"])));
+          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')));
     }
 
     function isValidDomain() {
       return request.auth.token.email.matches(".*@ifts18\\.edu\\.ar$") || 
-             request.auth.token.email.matches(".*@bue\\.edu\\.ar$");
+             request.auth.token.email.matches(".*@bue\\.edu\\.ar$") ||
+             request.auth.token.email == "gonzalo.sabsay@gmail.com";
     }
 
     function isValidUser(data) {
@@ -37,7 +37,7 @@ service cloud.firestore {
     function isValidProcedure(data) {
       return data.keys().hasAll(['studentId', 'type', 'status', 'caseNumber', 'createdAt', 'updatedAt']) &&
              data.studentId is string &&
-             data.type in ['alumno_regular', 'examen', 'equivalencias', 'readmision', 'pase'] &&
+             data.type in ['alumno_regular', 'examen', 'equivalencias', 'readmision', 'pase', 'cambio_carrera'] &&
              data.status in ['pending', 'in_review', 'approved', 'rejected', 'action_required'] &&
              (!('submissionMethod' in data) || data.submissionMethod in ['print', 'digital']) &&
              (!('rejectionReason' in data) || data.rejectionReason is string) &&

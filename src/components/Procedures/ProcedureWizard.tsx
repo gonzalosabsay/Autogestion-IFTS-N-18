@@ -284,6 +284,8 @@ export default function ProcedureWizard({ profile, onClose }: WizardProps) {
 
       const newProcedure = {
         studentId: profile.uid,
+        studentName: profile.fullName,
+        studentDni: profile.dni,
         type,
         status: 'pending',
         caseNumber: generateCaseNumber(),

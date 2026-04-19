@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, ProcedureRequest, PROCEDURE_LABELS } from '../types';
-import { Plus, FileText, Clock, CheckCircle, XCircle, ChevronRight, Search, Settings } from 'lucide-react';
+import { Plus, FileText, Clock, CheckCircle, XCircle, ChevronRight, Search, Settings, Filter, ChevronDown, ArrowUpDown } from 'lucide-react';
 import ProcedureWizard from './Procedures/ProcedureWizard';
 import ProcedureDetails from './Procedures/ProcedureDetails';
 import AuthorityManager from './Admin/AuthorityManager';
@@ -25,6 +25,8 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
   const [showWizard, setShowWizard] = useState(false);
   const [selectedProcedure, setSelectedProcedure] = useState<ProcedureRequest | null>(null);
   const [filter, setFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Sincronizar activeNav con estados internos
   useEffect(() => {
@@ -69,10 +71,39 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
     return () => unsubscribe();
   }, [profile]);
 
-  const filteredProcedures = procedures.filter(p => 
-    p.caseNumber.toLowerCase().includes(filter.toLowerCase()) ||
-    PROCEDURE_LABELS[p.type].toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredProcedures = procedures.filter(p => {
+    const searchLower = filter.toLowerCase();
+    
+    // Check top-level metadata
+    const matchesMetadata = 
+      p.caseNumber.toLowerCase().includes(searchLower) ||
+      PROCEDURE_LABELS[p.type].toLowerCase().includes(searchLower) ||
+      p.studentName?.toLowerCase().includes(searchLower) ||
+      p.studentDni?.includes(filter);
+
+    // Deep check in Content (p.data) to ensure DNI search etc works even if not in top-level
+    const matchesContent = Object.values(p.data || {}).some(value => {
+      if (!value) return false;
+      if (typeof value === 'string') return value.toLowerCase().includes(searchLower);
+      if (typeof value === 'number') return value.toString().includes(searchLower);
+      // For objects (like schedules), check their values too
+      if (typeof value === 'object') {
+        return Object.values(value).some(subVal => 
+          subVal?.toString().toLowerCase().includes(searchLower)
+        );
+      }
+      return false;
+    });
+    
+    const matchesSearch = matchesMetadata || matchesContent;
+    const matchesType = typeFilter === 'all' || p.type === typeFilter;
+    
+    return matchesSearch && matchesType;
+  }).sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -173,19 +204,56 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
             )}
 
             <div className="card-minimal overflow-hidden !p-0">
-              <div className="p-4 sm:p-6 border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 className="section-title mb-0">
-                  {profile?.role === 'admin' ? 'Todos los Expedientes' : 'Expedientes Recientes'}
-                </h2>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-2 w-4 h-4 text-text-muted" />
-                  <input 
-                    type="text" 
-                    placeholder="Buscar expediente..." 
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    className="w-full pl-9 pr-4 py-1.5 bg-bg-base border border-border-subtle rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent-blue"
-                  />
+              <div className="p-4 sm:p-6 border-b border-border-subtle">
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h2 className="section-title mb-0 shrink-0">
+                      {profile?.role === 'admin' ? 'Todos los Expedientes' : 'Expedientes Recientes'}
+                    </h2>
+                    
+                    <div className="relative w-full sm:w-72 lg:w-96">
+                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-muted" />
+                      <input 
+                        type="text" 
+                        placeholder={profile?.role === 'admin' ? "DNI, Nombre o contenido..." : "Buscar expediente..."} 
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-sm outline-none focus:ring-1 focus:ring-accent-blue transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {profile?.role === 'admin' && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="relative flex-1 sm:flex-none min-w-[160px]">
+                        <Filter className="absolute left-3 top-2.5 w-4 h-4 text-text-muted pointer-events-none" />
+                        <select
+                          value={typeFilter}
+                          onChange={(e) => setTypeFilter(e.target.value)}
+                          className="w-full pl-9 pr-10 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-sm outline-none focus:ring-1 focus:ring-accent-blue appearance-none font-semibold text-text-main pr-10"
+                        >
+                          <option value="all">Todos los trámites</option>
+                          {(Object.keys(PROCEDURE_LABELS) as Array<keyof typeof PROCEDURE_LABELS>).map(t => (
+                            <option key={t} value={t}>{PROCEDURE_LABELS[t]}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-text-muted pointer-events-none" />
+                      </div>
+
+                      <div className="relative flex-1 sm:flex-none min-w-[160px]">
+                        <ArrowUpDown className="absolute left-3 top-2.5 w-4 h-4 text-text-muted pointer-events-none" />
+                        <select
+                          value={sortOrder}
+                          onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc')}
+                          className="w-full pl-9 pr-10 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-sm outline-none focus:ring-1 focus:ring-accent-blue appearance-none font-semibold text-text-main"
+                        >
+                          <option value="desc">Más recientes primero</option>
+                          <option value="asc">Más antiguos primero</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-text-muted pointer-events-none" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -204,6 +272,11 @@ export default function Dashboard({ profile, activeNav, onNavChange }: Dashboard
                         </div>
                         <div className="min-w-0">
                           <div className="text-[13px] sm:text-[14px] font-semibold text-text-main truncate">{PROCEDURE_LABELS[proc.type]}</div>
+                          {profile?.role === 'admin' && proc.studentName && (
+                            <div className="text-[11px] font-bold text-accent-blue mt-0.5">
+                              {proc.studentName} - DNI {proc.studentDni}
+                            </div>
+                          )}
                           <div className="text-[11px] sm:text-[12px] text-text-muted">
                              {format(new Date(proc.createdAt), "d MMM yyyy", { locale: es })}
                           </div>
